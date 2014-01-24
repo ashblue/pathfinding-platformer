@@ -1,0 +1,187 @@
+body {
+    font-family: arial, helvetica, sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+}
+
+ul {
+    margin: 0 0 0 5px;
+    padding: 0;
+    list-style-position: inside;
+}
+
+p {
+    margin: 0 0 20px;
+}
+
+button.active {
+    border-bottom: 4px solid #555;
+    position: relative;
+    bottom: 10px;
+    margin-bottom: -4px;
+}
+
+.wrapper {
+    display: block;
+    margin: 0 auto;
+    width: 940px;
+    position: relative;
+}
+
+.map {
+  border-collapse: collapse;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  .map-row {
+    display: block;
+    float: left;
+    line-height: 0;
+  }
+
+  .map-tile {
+    border: 1px solid #aaa;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+
+    &:hover {
+//      outline: 5px solid rgba(0, 150, 200, 0.8);
+      border-color: #0af;
+    }
+
+    &[data-status="closed"] {
+      background: #000;
+    }
+
+    &[data-status="begin"] {
+      background: #0d0;
+    }
+
+    &[data-status="end"] {
+      background: #d00;
+    }
+
+    &[data-status="set-closed"] {
+      background: #8B7A5E;
+    }
+
+    &[data-status="set-opened"] {
+      background: #9FD6D2;
+    }
+
+    &[data-status="path"] {
+      background: #f0f;
+    }
+  }
+}
+
+.cf {
+  &:before,
+  &:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+  }
+
+  &:after {
+    clear: both;
+  }
+}
+
+.stat {
+    position: absolute;
+}
+.stat.f,
+.stats-preview .f {
+    top: 4px;
+    left: 4px;
+    position: absolute;
+}
+
+.stat.g,
+.stats-preview .g {
+    bottom: 4px;
+    left: 4px;
+    position: absolute;
+}
+
+.stat.h,
+.stats-preview .h {
+    position: absolute;
+    bottom: 4px;
+    right: 5px;
+}
+
+.stats-preview {
+    width: 100px;
+    height: 100px;
+    background: #9FD6D2;
+    border: 5px solid #aaa;
+    display: block;
+    font-size: 30px;
+    position: relative;
+}
+
+.break {
+    margin-bottom: 20px;
+    display: block;
+}
+
+.break.alt {
+    margin-bottom: 10px;
+}
+
+.legend-wrapper {
+    float: right;
+}
+
+.legend {
+    padding: 0;
+    background: #ddd;
+    display: inline-block;
+    list-style: none;
+    border: 1px solid #aaa;
+    margin-left: 0;
+}
+
+.legend li {
+    border-left: 30px solid #fff;
+    padding: 5px 20px 5px 10px;
+}
+
+.legend .closed {
+    border-color: #000;
+}
+
+.legend .begin {
+    border-color: #0d0;
+}
+
+.legend .end {
+    border-color: #d00;
+}
+
+.legend .set-opened {
+    border-color: #9FD6D2;
+}
+
+.legend .set-closed {
+    border-color: #8B7A5E;
+}
+
+.legend .path {
+    border-color: #f0f;
+}

@@ -2,15 +2,17 @@ var jp = jp || {};
 
 // @TODO Add input for step limiter
 $(document).ready(function () {
-    var $MAP = $('.map'),
-        MAP_LV_COUNT = 4,
-        MAP_WIDTH_COUNT = $MAP.find('tr:first td').length,
-        MAP_HEIGHT_COUNT = $MAP.find('tr').length,
-        $MAP_TILES = $('.map-tile'),
+    'use strict';
+
+    var $MAP,
+        $MAP_TILES,
         $BTNS = $('button'),
         $BTN_START = $('#set-begin'),
         $BTN_END = $('#set-end'),
-        $BTN_LV = $('#set-lv');
+        $BTN_LV = $('#set-lv'),
+        _map_width_count,
+        _map_height_count,
+        _setStatus = null;
 
     var TILES = {
         begin: '[data-status=begin]',
@@ -21,29 +23,23 @@ $(document).ready(function () {
         path: '[data-status=path]'
     };
 
-    var _setBegin = false,
-        _setEnd = false,
-        _setLv = false;
-
     var _event = {
-        toggleOpen: function () {
+        toggleState: function () {
             var status = $(this).attr('data-status');
 
             // Set square
-            if (_setLv) {
-                $(this).attr('data-lv', jp.visual.getNewLv($(this)));
-            } else if (status === 'begin' || status === 'end') {
+            if (status === 'begin' || status === 'end') { // Do not set begin and end tiles
                 return;
-            } else if (_setBegin) {
+            } else if (_setStatus === 'begin') {
                 $BTNS.attr('class', '');
                 $MAP.find(TILES.begin).attr('data-status', 'open');
                 $(this).attr('data-status', 'begin');
-                _setBegin = false;
-            } else if (_setEnd) {
+                _setStatus = null;
+            } else if (_setStatus === 'end') {
                 $BTNS.attr('class', '');
                 $MAP.find(TILES.end).attr('data-status', 'open');
                 $(this).attr('data-status', 'end');
-                _setEnd = false;
+                _setStatus = null;
             } else if (status === 'closed') {
                 $(this).attr('data-status', 'open');
             } else {
@@ -51,60 +47,76 @@ $(document).ready(function () {
             }
         },
 
-        activeLv: function () {
-            $BTNS.attr('class', '');
-
-            if (_setLv) {
-                _setLv = false;
-            } else {
-                $BTN_LV.addClass('active');
-                _setBegin = false;
-                _setEnd = false;
-                _setLv = true;
-            }
-
-            return this;
-        },
-
         activeStart: function () {
             if ($BTN_START.hasClass('active')) {
                 $BTNS.attr('class', '');
-                _setBegin = false;
+                _setStatus = null;
                 return;
             }
 
             $BTNS.attr('class', '');
             $BTN_START.addClass('active');
-            _setBegin = true;
-            _setEnd = false;
-            _setLv = false;
+            _setStatus = 'begin'
         },
 
         activeEnd: function () {
             if ($BTN_END.hasClass('active')) {
                 $BTNS.attr('class', '');
-                _setEnd = false;
+                _setStatus = null;
                 return;
             }
 
             $BTNS.attr('class', '');
             $BTN_END.addClass('active');
-            _setBegin = false;
-            _setEnd = true;
-            _setLv = false;
+            _setStatus = 'end';
         }
     };
 
     jp.visual = {
         init: function () {
-            this.bind();
+            this.createMap('map', 18, 8)
+                .bind()
+                .setStatus({ x: 2, y: 1 }, 'begin')
+                .setStatus({ x: 1, y: 7 }, 'end')
+                .setStatus({ x: 0, y: 2 }, 'closed')
+                .setStatus({ x: 0, y: 3 }, 'closed')
+                .setStatus({ x: 1, y: 2 }, 'closed')
+                .setStatus({ x: 1, y: 3 }, 'closed')
+                .setStatus({ x: 2, y: 2 }, 'closed')
+                .setStatus({ x: 2, y: 3 }, 'closed')
+                .setStatus({ x: 3, y: 2 }, 'closed')
+                .setStatus({ x: 3, y: 3 }, 'closed');
         },
 
+        createMap: function (id, width, height) {
+            var x, y, $row;
+            _map_width_count = width;
+            _map_height_count = height;
+            $MAP = $('#' + id);
+
+            for (y = 0; y < height; y++) {
+                $row = $('<div class="map-row"></div>');
+                for (x = 0; x < width; x++) {
+                    $row.append('<div class="map-tile" data-x="' + x + '" data-y="' + y + '"></div>');
+                }
+                $MAP.append($row);
+            }
+
+            $MAP_TILES = $MAP.find('.map-tile');
+
+            return this;
+        },
+
+        /**
+         * @TODO Clear map is not listed here
+         * @TODO Find path is not listed here
+         */
         bind: function () {
-            $MAP_TILES.click(_event.toggleOpen);
+            $MAP_TILES.click(_event.toggleState);
             $BTN_START.click(_event.activeStart);
             $BTN_END.click(_event.activeEnd);
-            $BTN_LV.click(_event.activeLv);
+
+            return this;
         },
 
         // Gets status from the dom, count starts at 0
@@ -121,29 +133,15 @@ $(document).ready(function () {
             }
         },
 
-        // Gets level from the DOM, count starts at 1
-        getLv: function (x, y) {
-            var lv = this.getTile(x, y).attr('data-lv');
-
-            switch (lv) {
-                case undefined:
-                    return 1;
-                case '1':
-                    return 1;
-                default:
-                    return parseInt(lv, 10);
-            }
-        },
-
         getMap: function () {
             var tmpMap = [],
                 status,
                 i,
                 j;
 
-            for (i = 0; i < MAP_HEIGHT_COUNT; i++) {
+            for (i = 0; i < _map_height_count; i++) {
                 tmpMap.push([]);
-                for (j = 0; j < MAP_WIDTH_COUNT; j++) {
+                for (j = 0; j < _map_width_count; j++) {
                     status = this.getStatus(j, i);
 
                     if (status === 'closed') {
@@ -157,39 +155,12 @@ $(document).ready(function () {
             return tmpMap;
         },
 
-        getMap3d: function () {
-            var tmpMap = [],
-                status,
-                lv,
-                i, j, k;
-
-            for (i = 0; i < MAP_LV_COUNT; i++) {
-                tmpMap.push([]);
-                for (j = 0; j < MAP_HEIGHT_COUNT; j++) {
-                    tmpMap[i].push([]);
-                    for (k = 0; k < MAP_WIDTH_COUNT; k++) {
-                        status = this.getStatus(k, j);
-                        lv = this.getLv(k, j);
-
-                        if (lv !== i + 1 || status === 'closed') {
-                            tmpMap[i][j][k] = 0;
-                        } else {
-                            tmpMap[i][j][k] = 1;
-                        }
-                    }
-                }
-            }
-
-            return tmpMap;
-        },
-
         getBegin: function () {
             var $beginTile = $(TILES.begin);
 
             return {
                 x: $beginTile.index(),
-                y: $beginTile.parent('tr').index(),
-                z: (parseInt($beginTile.attr('data-lv'), 10) || 1) - 1
+                y: $beginTile.parent('div').index()
             };
         },
 
@@ -198,13 +169,19 @@ $(document).ready(function () {
 
             return {
                 x: $endTile.index(),
-                y: $endTile.parent('tr').index(),
-                z: (parseInt($endTile.attr('data-lv'), 10) || 1) - 1
+                y: $endTile.parent('div').index()
             };
         },
 
         getTile: function (x, y) {
-            return $MAP.find('tr:nth-child(' + (y + 1) + ') td:nth-child(' + (x + 1) + ')');
+            return $MAP.find('.map-row:nth-child(' + (y + 1) + ') .map-tile:nth-child(' + (x + 1) + ')');
+        },
+
+        setStatus: function (tile, status) {
+            var $tile = this.getTile(tile.x, tile.y);
+
+            $tile.attr('data-status', status);
+            return this;
         },
 
         setTile: function (tile, status) {
@@ -233,18 +210,6 @@ $(document).ready(function () {
             }
 
             return this;
-        },
-
-        getNewLv: function ($tile) {
-            var lv = parseInt($tile.attr('data-lv'), 10);
-
-            if (isNaN(lv)) {
-                return 2;
-            } else if (lv === 4) {
-                return 1;
-            } else {
-                return lv + 1;
-            }
         },
 
         // Erase everything on the map except beginning and end points
