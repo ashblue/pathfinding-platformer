@@ -34,6 +34,26 @@
             <button id="erase">Clear Map</button>
         </div>
 
+        <form class="break">
+            <ul>
+                <li>
+                    <label>Player Size</label>
+                    x <input id="input-player-x" type="number" value="1" /> y <input id="input-player-y" type="number" value="1">
+                </li>
+                <li>
+                    <label>Units Per Voxel (pixels)</label>
+                    <input id="input-voxel" type="number" value="1" />
+                </li>
+                <li>
+                    <label>Physics</label>
+                    Accel <input id="input-accel-x" type="number" value="1" /> <input type="number" value="1" id="input-accel-y" />
+                    Velocity <input type="number" value="1" id="input-vel-x" /> <input type="number" value="1" id="input-vel-y" />
+                    Friction <input type="number" value="1" id="input-friction-x" /> <input type="number" value="1" id="input-friction-y" />
+                    MaxVel <input type="number" value="1" id="input-maxvel-x" /> <input type="number" value="1" id="input-maxvel-y" />
+                </li>
+            </ul>
+        </form>
+
         <h2>Tile Stats Overview</h2>
         <dl>
             <dt>F = Calculated Total</dt>
@@ -51,17 +71,21 @@
                 assumed.</dd>
         </dl>
 
+        <h3>Movement Rules</h3>
+        <ul class="break">
+            <li>Player will find the shortest path to the end</li>
+            <li>Player size will limit potential paths</li>
+            <li>Player physics will be used to pre-calculate potential jumps</li>
+            <li>Jump paths must be verified as clear</li>
+        </ul>
+
         <span class="stats-preview break">
             <span class="f">F</span>
             <span class="g">G</span>
             <span class="h">H</span>
         </span>
 
-        <h3>Movement Rules</h3>
-        <ul class="break">
-            <li>Player can only move up/down one level at a time. This means a player cannot go from level 1 to 3.</li>
-            <li>It costs 2 movement points to move up/down a level.</li>
-        </ul>
+    </div>
 
     <a href="https://github.com/ashblue/javascript-pathfinding"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
 

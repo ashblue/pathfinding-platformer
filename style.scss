@@ -101,28 +101,49 @@ button.active {
   }
 }
 
+form {
+  label {
+    display: block;
+    font-size: 120%;
+    font-weight: bold;
+  }
+
+  ul {
+    list-style: none;
+
+    li {
+      display: block;
+      margin-bottom: 10px;
+    }
+  }
+
+  input {
+    width: 50px;
+  }
+}
+
 .stat {
     position: absolute;
 }
 .stat.f,
 .stats-preview .f {
-    top: 4px;
-    left: 4px;
+    top: 10px;
+    left: 3px;
     position: absolute;
 }
 
 .stat.g,
 .stats-preview .g {
-    bottom: 4px;
-    left: 4px;
+    bottom: 10px;
+    left: 3px;
     position: absolute;
 }
 
 .stat.h,
 .stats-preview .h {
     position: absolute;
-    bottom: 4px;
-    right: 5px;
+    bottom: 10px;
+    right: 3px;
 }
 
 .stats-preview {

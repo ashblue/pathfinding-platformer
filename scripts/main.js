@@ -13,16 +13,6 @@ $(document).ready(function () {
             var path = jp.pathFinder.findPath(begin.x, begin.y, end.x, end.y);
             jp.pathFinder.setVisual();
             jp.visual.setTileGroup(path, 'path')
-        },
-
-        findPath3d: function () {
-            var begin = jp.visual.getBegin(),
-                end = jp.visual.getEnd();
-
-            jp.map.setData(jp.visual.getMap3d());
-            var path = jp.pathFinder.findPath3d(begin.x, begin.y, begin.z, end.x, end.y, end.z);
-            jp.pathFinder.setVisual();
-            jp.visual.setTileGroup(path, 'path')
         }
     };
 
@@ -33,7 +23,7 @@ $(document).ready(function () {
         },
 
         bind: function () {
-            $BTN_PATH.click(_event.findPath3d);
+            $BTN_PATH.click(_event.findPath);
             $BTN_ERASE.click(jp.visual.erase);
         }
     };
