@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A Star JavaScript Pathfinding Demo</title>
+    <meta
+        name="description"
+        content="An interactive demo and explanation of how the A Star pathfinding algorithm works.">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="prism.css">
+</head>
+<body>
+    <div class="wrapper">
+        <h1>A* Pathfinding Demo</h1>
+        <small class="break">Author: <a href="http://blueashes.com/">Ash Blue</a></small>
+
+        <p>In tile based games the most popular pathfinding algorithm is A* (pronounced A Star). It allows
+            you to search through tiles on a two-dimensional plane. But can be easily upgraded to allow
+            three-dimensional searching. There are faster algorithms out there, but this one is by far the most
+            customizable and easy to implement.</p>
+
+        <p>The following interactive demo focuses on implementing A Star in the context of a tile game.
+            If you wanted to implement it on a two-dimensional sidescroller you may want to think about implementing
+            it differently.Click on the map to toggle blockers.</p>
+
+        <p>Set the start/end point by clicking their corresponding buttons. Then click <em>Find Path</em> to
+            activate the demo. For more details see the <strong>legend</strong>.</p>
+
+        <div class="legend-wrapper">
+            <h3>Legend</h3>
+            <ul class="legend break">
+                <li class="open">Open</li>
+                <li class="closed">Closed</li>
+                <li class="begin">Begin</li>
+                <li class="end">End</li>
+                <li class="set-opened">Opened Set</li>
+                <li class="set-closed">Closed Set</li>
+                <li class="path">Path</li>
+            </ul>
+        </div>
+
+        <table class="map break alt">
+                <tr class="map-row">
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                </tr>
+                <tr class="map-row">
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile" data-status="begin"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                </tr>
+                <tr class="map-row">
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                </tr>
+                <tr class="map-row">
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile" data-status="end"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                </tr>
+                <tr class="map-row">
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile" data-status="closed"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                </tr>
+                <tr class="map-row">
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                </tr>
+                <tr class="map-row">
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                </tr>
+                <tr class="map-row">
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                    <td class="map-tile"></td>
+                </tr>
+            </table>
+
+        <div class="break">
+            <button id="calculate">Find Path</button>
+            <button id="set-begin">Set Start</button>
+            <button id="set-end">Set End</button>
+            <button id="set-lv">Toggle Level</button>
+            <button id="erase">Clear Map</button>
+        </div>
+
+        <h2>Tile Stats Overview</h2>
+        <dl>
+            <dt>F = Calculated Total</dt>
+            <dd>Sum of the heuristic (H) and current step cost (G)</dd>
+
+            <dt>G = Step Cost</dt>
+            <dd>Total number of steps required to walk here from the start tile.</dd>
+
+            <dt>H = Heuristic Estimate</dt>
+            <dd>Heuristic uses Manhattan distance. Measures distance from current tile
+                to the goal.</dd>
+
+            <dt>Level</dt>
+            <dd>Current level of the tile. Rating of 1 - 4. No rating present means a 1 will be
+                assumed.</dd>
+        </dl>
+
+        <span class="stats-preview break">
+            <span class="f">F</span>
+            <span class="g">G</span>
+            <span class="h">H</span>
+        </span>
+
+        <h3>Movement Rules</h3>
+        <ul class="break">
+            <li>Player can only move up/down one level at a time. This means a player cannot go from level 1 to 3.</li>
+            <li>It costs 2 movement points to move up/down a level.</li>
+        </ul>
+
+        <h2>Implementation Code</h2>
+        <p>For a full overview of how this was implemented please download and review the
+            <a href="https://github.com/ashblue/javascript-pathfinding">source code</a> with comments.</p>
+
+
+<pre><code class="language-javascript">function findPath(xC, yC, xT, yT) {
+    var current, // Current best open tile
+        neighbors, // Dump of all nearby neighbor tiles
+        neighborRecord, // Any pre-existing records of a neighbor
+        stepCost, // Dump of a total step score for a neighbor
+        i;
+
+    // You must add the starting step
+    this.reset()
+        .addOpen(new jp.Step(xC, yC, xT, yT, this.step, false));
+
+    while (this.open.length !== 0) {
+        current = this.getBestOpen();
+
+        // Check if goal has been discovered to build a path
+        if (current.x === xT && current.y === yT) {
+            return this.buildPath(current, []);
+        }
+
+        // Move current into closed set
+        this.removeOpen(current)
+            .addClosed(current);
+
+        // Get neighbors from the map and check them
+        neighbors = jp.map.getNeighbors(current.x, current.y);
+        for (i = 0; i < neighbors.length; i++) {
+            // Get current step and distance from current to neighbor
+            stepCost = current.g + jp.map.getCost(current.x, current.y, neighbors[i].x, neighbors[i].y);
+
+            // Check for the neighbor in the closed set
+            // then see if its cost is >= the stepCost, if so skip current neighbor
+            neighborRecord = this.inClosed(neighbors[i]);
+            if (neighborRecord && stepCost >= neighborRecord.g)
+                continue;
+
+            // Verify neighbor doesn't exist or new score for it is better
+            neighborRecord = this.inOpen(neighbors[i]);
+            if (!neighborRecord || stepCost < neighborRecord.g) {
+                if (!neighborRecord) {
+                    this.addOpen(new jp.Step(neighbors[i].x, neighbors[i].y, xT, yT, stepCost, current));
+                } else {
+                    neighborRecord.parent = current;
+                    neighborRecord.g = stepCost;
+                    neighborRecord.f = stepCost + neighborRecord.h;
+                }
+            }
+        }
+    }
+
+    return false;
+}</code></pre>
+
+        <h2>References</h2>
+        <ul>
+            <li>
+                <a href="http://www.raywenderlich.com/4946/introduction-to-a-pathfinding">
+                    Introductory A* tutorial used to create this demo
+                </a>
+            </li>
+            <li>
+                <a href="http://en.wikipedia.org/wiki/A*_search_algorithm">
+                    Pseudo-code used to generate this tutorial
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <a href="https://github.com/ashblue/javascript-pathfinding"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
+
+    <!-- Libs -->
+    <script type="text/javascript" src="scripts/libs/jquery-2.0.0.js"></script>
+    <script type="text/javascript" src="scripts/libs/prism.js"></script>
+
+    <!-- Models -->
+    <script type="text/javascript" src="scripts/models/step.js"></script>
+    <script type="text/javascript" src="scripts/models/tile.js"></script>
+
+    <!-- Controllers -->
+    <script type="text/javascript" src="scripts/controllers/visual.js"></script>
+    <script type="text/javascript" src="scripts/controllers/map.js"></script>
+    <script type="text/javascript" src="scripts/controllers/pathfinder.js"></script>
+
+    <!-- Execution logic -->
+    <script type="text/javascript" src="scripts/main.js"></script>
+</body>
+</html>
