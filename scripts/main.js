@@ -9,12 +9,13 @@ $(document).ready(function () {
             var timeEnd,
                 timeStart,
                 begin = jp.visual.getBegin(),
-                end = jp.visual.getEnd();
+                end = jp.visual.getEnd(),
+                maxSteps = parseInt($('#input-max-steps').val(), 10);
 
             jp.pathFinder.playerSize = jp.visual.getPlayerSize();
-            timeStart = Date.now();
             jp.map.setData(jp.visual.getCollisionMap());
-            var path = jp.pathFinder.findPath(begin.x, begin.y, end.x, end.y);
+            timeStart = Date.now();
+            var path = jp.pathFinder.findPath(begin.x, begin.y, end.x, end.y, maxSteps);
             timeEnd = Date.now();
             jp.pathFinder.setVisual();
             jp.visual.setTileGroup(path, 'path')

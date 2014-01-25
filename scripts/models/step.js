@@ -12,11 +12,6 @@ $(document).ready(function () {
         distanceM: function (xC, yC, xT, yT) {
             var dx = Math.abs(xT - xC), dy = Math.abs(yT - yC);
             return dx + dy;
-        },
-
-        distanceM3d: function (xC, yC, zC, xT, yT, zT) {
-            var dx = Math.abs(xT - xC), dy = Math.abs(yT - yC), dz = Math.abs(zT - zC);
-            return dx + dy + dz;
         }
     };
 
@@ -26,19 +21,6 @@ $(document).ready(function () {
 
         this.x = xC;
         this.y = yC;
-        this.g = totalSteps;
-        this.h = h;
-        this.f = totalSteps + h;
-        this.parent = parentStep;
-    };
-
-    // @TODO Might need to add an extra +1 for every level change
-    jp.Step3d = function(xC, yC, zC, xT, yT, zT, totalSteps, parentStep) {
-        var h = _private.distanceM3d(xC, yC, zC, xT, yT, zT);
-
-        this.x = xC;
-        this.y = yC;
-        this.z = zC;
         this.g = totalSteps;
         this.h = h;
         this.f = totalSteps + h;

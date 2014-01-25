@@ -20,6 +20,7 @@ $(document).ready(function () {
 
         // Step count
         step: 0,
+        maxSteps: 0,
 
         // Maximum number of steps that can be taken before shutting down a closed path
         maxSearchDistance: 10,
@@ -72,7 +73,21 @@ $(document).ready(function () {
             return false;
         },
 
+        setMaxSteps: function (steps) {
+            this.maxSteps = steps;
+            return this;
+        },
+
         // @TODO Integrate maximum step limiter
+        /**
+         *
+         * @param xC {number} X origin
+         * @param yC {number} Y origin
+         * @param xT {number} X target
+         * @param yT {number} Y target
+         * @param maxSteps {number} Maximum number of step attempts allowed
+         * @returns {*}
+         */
         findPath: function (xC, yC, xT, yT, maxSteps) {
             var current, // Current best open tile
                 neighbors, // Dump of all nearby neighbor tiles
@@ -82,9 +97,13 @@ $(document).ready(function () {
 
             // You must add the starting step
             this.reset()
+                .setMaxSteps(maxSteps)
                 .addOpen(new jp.Step(xC, yC, xT, yT, this.step, false));
 
             while (this.open.length !== 0) {
+                maxSteps -= 1;
+                if (maxSteps < 1) break;
+
                 current = this.getBestOpen();
 
                 // Check if goal has been discovered to build a path
@@ -126,10 +145,45 @@ $(document).ready(function () {
                 }
             }
 
-            return false;
+            return this.getBestGuess(xC, yC);
         },
 
-        // Recursive path buliding method
+        getBestClosed: function () {
+            var bestI = 0;
+            for (var i = 0, len = this.closed.length; i < len; i++) {
+                if (this.closed[i].f < this.closed[bestI].f) bestI = i;
+            }
+
+            return this.closed[bestI];
+        },
+
+        getBestHeuristic: function () {
+            var bestClosedI = 0, bestOpenI = 0;
+
+            // Loop through all items and look for best heuristic
+            for (var i = 0, len = this.closed.length; i < len; i++) {
+                if (this.closed[i].h < this.closed[bestClosedI].h) bestClosedI = i;
+            }
+
+            for (i = 0, len = this.open.length; i < len; i++) {
+                if (this.open[i].h < this.open[bestOpenI].h) bestOpenI = i;
+            }
+
+            return this.open[bestOpenI].h > this.closed[bestClosedI].h ? this.open[bestOpenI] : this.closed[bestClosedI];
+        },
+
+        /**
+         * In-cases such as max steps exceeded we need to return a best guess for the estimated location
+         */
+        getBestGuess: function (xC, yC) {
+            // Get the best available heuristic tile
+            var tileBest = this.getBestHeuristic();
+
+            // Build a path to that tile
+            return this.findPath(xC, yC, tileBest.x, tileBest.y, this.maxSteps);
+        },
+
+        // Recursive path building method
         buildPath: function (tile, stack) {
             stack.push(tile);
 
