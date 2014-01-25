@@ -32,6 +32,8 @@ $(document).ready(function () {
             if (status === 'begin' || status === 'end') { // Do not set begin and end tiles
                 return;
             } else if (_setStatus === 'begin') {
+                jp.map.setData(jp.visual.getCollisionMap());
+
                 // Verify there is proper clearance around the player before placing
                 var playerSize = jp.visual.getPlayerSize(),
                     xPos = parseInt($el.attr('data-x'), 10),
@@ -179,7 +181,7 @@ $(document).ready(function () {
         },
 
         getBegin: function () {
-            var $beginTile = $(TILES.begin);
+            var $beginTile = $(TILES.begin).first();
 
             return {
                 x: $beginTile.index(),

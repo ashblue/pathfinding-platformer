@@ -5,6 +5,13 @@ $(document).ready(function () {
     // Pathfinder API - Returns a path to the target
     // Good place to add details such as flying, swimming, ect.
     jp.pathFinder = {
+        // Goal variables help to determine if an object larger than one voxel has hit its goal
+        xGoal: null,
+        yGoal: null,
+
+        // Number of voxels for the player unit size
+        playerSize: 1,
+
         // Taken steps
         closed: [],
 
@@ -81,7 +88,9 @@ $(document).ready(function () {
                 current = this.getBestOpen();
 
                 // Check if goal has been discovered to build a path
-                if (current.x === xT && current.y === yT) {
+                this.xGoal = xT - current.x;
+                this.yGoal = yT - current.y;
+                if (this.xGoal < this.playerSize && this.xGoal >= 0 && this.yGoal < this.playerSize && this.yGoal >= 0) {
                     return this.buildPath(current, []);
                 }
 
@@ -90,7 +99,6 @@ $(document).ready(function () {
                     .addClosed(current);
 
                 // Get neighbors from the map and check them
-                // @TODO While reviewing neighbors we need to verify a space exists to fit our player (wide or high enough)
                 neighbors = jp.map.getNeighbors(current.x, current.y);
                 for (i = 0; i < neighbors.length; i++) {
                     // Get current step and distance from current to neighbor
@@ -106,6 +114,8 @@ $(document).ready(function () {
                     neighborRecord = this.inOpen(neighbors[i]);
                     if (!neighborRecord || stepCost < neighborRecord.g) {
                         if (!neighborRecord) {
+                            // Reject the tile immediately if the player cannot fit into it
+                            if (this.playerSize > jp.map.getClearance(neighbors[i].x, neighbors[i].y)) continue;
                             this.addOpen(new jp.Step(neighbors[i].x, neighbors[i].y, xT, yT, stepCost, current));
                         } else {
                             neighborRecord.parent = current;
