@@ -25,15 +25,32 @@ $(document).ready(function () {
 
     var _event = {
         toggleState: function () {
-            var status = $(this).attr('data-status');
+            var $el = $(this),
+                status = $el.attr('data-status');
 
             // Set square
             if (status === 'begin' || status === 'end') { // Do not set begin and end tiles
                 return;
             } else if (_setStatus === 'begin') {
+                // Verify there is proper clearance around the player before placing
+                var playerSize = jp.visual.getPlayerSize(),
+                    xPos = parseInt($el.attr('data-x'), 10),
+                    yPos = parseInt($el.attr('data-y'));
+                if (jp.visual.getPlayerSize() > jp.map.getClearance(xPos, yPos))
+                    return;
+
                 $BTNS.attr('class', '');
                 $MAP.find(TILES.begin).attr('data-status', 'open');
+
+                // Create a square equal to player size
+                var x, y;
+                for (y = 0; y < playerSize; y++) {
+                    for (x = 0; x < playerSize; x++) {
+                        $('div[data-x="' + (xPos + x) +'"][data-y="' + (yPos + y) + '"]').attr('data-status', 'begin');
+                    }
+                }
                 $(this).attr('data-status', 'begin');
+
                 _setStatus = null;
             } else if (_setStatus === 'end') {
                 $BTNS.attr('class', '');
@@ -86,6 +103,8 @@ $(document).ready(function () {
                 .setStatus({ x: 2, y: 3 }, 'closed')
                 .setStatus({ x: 3, y: 2 }, 'closed')
                 .setStatus({ x: 3, y: 3 }, 'closed');
+
+            jp.map.setData(this.getCollisionMap());
         },
 
         createMap: function (id, width, height) {
@@ -155,6 +174,10 @@ $(document).ready(function () {
             return tmpMap;
         },
 
+        getPlayerSize: function () {
+            return parseInt($('#input-player').val(), 10);
+        },
+
         getBegin: function () {
             var $beginTile = $(TILES.begin);
 
@@ -200,6 +223,9 @@ $(document).ready(function () {
                 $tile.append('<span class="stat g">' + tile.g +'</span>');
                 $tile.append('<span class="stat h">' + tile.h +'</span>');
             }
+
+            // @TODO Should output on all tiles, even though it isn't, that is okay for now...
+            $tile.append('<span class="stat c">' + jp.map.dataClearance[tile.y][tile.x] + '</span>');
 
             return this;
         },

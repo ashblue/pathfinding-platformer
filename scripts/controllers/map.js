@@ -5,6 +5,15 @@ $(document).ready(function () {
         outOfBounds: function (x, y) {
             return x < 0 || x >= jp.map.dataCollision[0].length ||
                 y < 0 || y >= jp.map.dataCollision.length;
+        },
+
+        recursiveClearance: function (xStart, yStart, distance) {
+            if (jp.map.isEdgeOpen(xStart, yStart, distance)) {
+                return _private.recursiveClearance(xStart, yStart, distance + 1);
+            }
+
+            // New distance failed, return it to the previous value
+            return distance - 1;
         }
     };
 
@@ -33,20 +42,15 @@ $(document).ready(function () {
                 for (x = 0, width = this.getWidthInTiles(); x < width; x++) {
                     // Recursively check clearance until false is return
                     // set clearance equal to number of recursive checks
-                    this.dataClearance[y].push(this.getClearance(x, y, 1));
+                    this.dataClearance[y].push(_private.recursiveClearance(x, y, 1));
                 }
             }
 
             return this;
         },
 
-        getClearance: function (xStart, yStart, distance) {
-            if (this.isEdgeOpen(xStart, yStart, distance)) {
-                return this.getClearance(xStart, yStart, distance + 1);
-            }
-
-            // New distance failed, return it to the previous value
-            return distance - 1;
+        getClearance: function (x, y) {
+            return this.dataClearance[y][x];
         },
 
         getWidthInTiles: function () {

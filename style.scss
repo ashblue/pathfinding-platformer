@@ -146,6 +146,14 @@ form {
     right: 3px;
 }
 
+.stat.c,
+.stats-preview .c {
+  position: absolute;
+  top: 10px;
+  right: 3px;
+  opacity: 0.5;
+}
+
 .stats-preview {
     width: 100px;
     height: 100px;
