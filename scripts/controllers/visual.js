@@ -133,7 +133,7 @@ $(document).ready(function () {
             }
         },
 
-        getMap: function () {
+        getCollisionMap: function () {
             var tmpMap = [],
                 status,
                 i,

@@ -9,7 +9,7 @@ $(document).ready(function () {
             var begin = jp.visual.getBegin(),
                 end = jp.visual.getEnd();
 
-            jp.map.setData(jp.visual.getMap());
+            jp.map.setData(jp.visual.getCollisionMap());
             var path = jp.pathFinder.findPath(begin.x, begin.y, end.x, end.y);
             jp.pathFinder.setVisual();
             jp.visual.setTileGroup(path, 'path')
