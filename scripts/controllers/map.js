@@ -14,7 +14,7 @@ $(document).ready(function () {
 
         setData: function (map) {
             this.dataCollision = map;
-            return this;
+            return this.updateClearance();
         },
 
         /**
@@ -25,14 +25,28 @@ $(document).ready(function () {
          */
         updateClearance: function () {
             var x, y, width, height;
-            for (y = 0, height = this.getWidthInTiles(); y < height; y++) {
-                for (x = 0, width = this.getHeightInTiles(); x < width; x++) {
+
+            this.dataClearance = [];
+
+            for (y = 0, height = this.getHeightInTiles(); y < height; y++) {
+                this.dataClearance.push([]);
+                for (x = 0, width = this.getWidthInTiles(); x < width; x++) {
                     // Recursively check clearance until false is return
                     // set clearance equal to number of recursive checks
+                    this.dataClearance[y].push(this.getClearance(x, y, 1));
                 }
             }
 
             return this;
+        },
+
+        getClearance: function (xStart, yStart, distance) {
+            if (this.isEdgeOpen(xStart, yStart, distance)) {
+                return this.getClearance(xStart, yStart, distance + 1);
+            }
+
+            // New distance failed, return it to the previous value
+            return distance - 1;
         },
 
         getWidthInTiles: function () {
@@ -61,7 +75,7 @@ $(document).ready(function () {
          * @param xStart
          * @param yStart
          * @param distance
-         * @param squareLocation
+         * @param [squareLocation]
          * @TODO Expand square location to take more parameters and return different edge pieces
          */
         isEdgeOpen: function (xStart, yStart, distance, squareLocation) {
