@@ -25,6 +25,8 @@ $(document).ready(function () {
         // Maximum number of steps that can be taken before shutting down a closed path
         maxSearchDistance: 10,
 
+        calls: null,
+
         addOpen: function (step) {
             this.open.push(step);
             return this;
@@ -101,6 +103,7 @@ $(document).ready(function () {
                 .addOpen(new jp.Step(xC, yC, xT, yT, this.step, false));
 
             while (this.open.length !== 0) {
+                this.calls += 1;
                 maxSteps -= 1;
                 if (maxSteps < 1) break;
 
@@ -203,6 +206,7 @@ $(document).ready(function () {
         reset: function () {
             this.closed = [];
             this.open = [];
+            this.calls = 0;
             return this;
         }
     };

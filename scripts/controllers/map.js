@@ -104,13 +104,24 @@ $(document).ready(function () {
         },
 
         getNeighbors: function (x, y) {
-            var neighbors = [];
+            var neighbors = [],
+                right = this.blocked(x + 1, y),
+                left = this.blocked(x - 1, y),
+                bottom = this.blocked(x, y + 1),
+                top = this.blocked(x, y - 1);
 
-            // Check left, right, top, bottom
-            if (!this.blocked(x + 1, y)) neighbors.push(new jp.Tile(x + 1, y));
-            if (!this.blocked(x - 1, y)) neighbors.push(new jp.Tile(x - 1, y));
-            if (!this.blocked(x, y + 1)) neighbors.push(new jp.Tile(x, y + 1));
-            if (!this.blocked(x, y - 1)) neighbors.push(new jp.Tile(x, y - 1));
+            // Check right, left, bottom, top
+            if (!right) neighbors.push(new jp.Tile(x + 1, y));
+            if (!left) neighbors.push(new jp.Tile(x - 1, y));
+            if (!bottom) neighbors.push(new jp.Tile(x, y + 1));
+            if (!top) neighbors.push(new jp.Tile(x, y - 1));
+
+            // Check top left, bottom left, top right, bottom right
+            // Side checks enforce that corners should not be clipped / ignored
+            if (!top && !left && !this.blocked(x - 1, y - 1)) neighbors.push(new jp.Tile(x - 1, y - 1));
+            if (!bottom && !left && !this.blocked(x - 1, y + 1)) neighbors.push(new jp.Tile(x - 1, y + 1));
+            if (!top && !right && !this.blocked(x + 1, y - 1)) neighbors.push(new jp.Tile(x + 1, y - 1));
+            if (!bottom && !right && !this.blocked(x + 1, y + 1)) neighbors.push(new jp.Tile(x + 1, y + 1));
 
             return neighbors;
         },

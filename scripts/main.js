@@ -21,6 +21,7 @@ $(document).ready(function () {
             jp.visual.setTileGroup(path, 'path')
 
             $('#time').html((timeEnd - timeStart) / 1000);
+            $('#calls').html(jp.pathFinder.calls);
         }
     };
 
