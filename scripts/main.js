@@ -18,7 +18,7 @@ $(document).ready(function () {
             var path = jp.pathFinder.findPath(begin.x, begin.y, end.x, end.y, maxSteps);
             timeEnd = Date.now();
             jp.pathFinder.setVisual();
-            jp.visual.setTileGroup(path, 'path')
+            jp.visual.setTileGroup(path, 'path');
 
             $('#time').html((timeEnd - timeStart) / 1000);
             $('#calls').html(jp.pathFinder.calls);

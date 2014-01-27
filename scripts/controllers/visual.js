@@ -10,6 +10,7 @@ $(document).ready(function () {
         $BTN_START = $('#set-begin'),
         $BTN_END = $('#set-end'),
         $BTN_LV = $('#set-lv'),
+        $BTN_CLEARANCE = $('#show-clearance'),
         _map_width_count,
         _map_height_count,
         _setStatus = null;
@@ -88,6 +89,19 @@ $(document).ready(function () {
             $BTNS.attr('class', '');
             $BTN_END.addClass('active');
             _setStatus = 'end';
+        },
+
+        showClearance: function () {
+            var dataClearance = jp.map.dataClearance;
+            var width = jp.map.getWidthInTiles();
+            var height = jp.map.getHeightInTiles();
+            var x = 0, y = 0;
+
+            for (y = 0; y < height; y++) {
+                for (x = 0; x < width; x++) {
+                    jp.visual.setTileValue({x: x, y: y}, 'c', dataClearance[y][x]);
+                }
+            }
         }
     };
 
@@ -136,6 +150,7 @@ $(document).ready(function () {
             $MAP_TILES.click(_event.toggleState);
             $BTN_START.click(_event.activeStart);
             $BTN_END.click(_event.activeEnd);
+            $BTN_CLEARANCE.click(_event.showClearance);
 
             return this;
         },
@@ -209,6 +224,13 @@ $(document).ready(function () {
             return this;
         },
 
+        setTileValue: function (tile, targetClass, targetValue) {
+            var $tile = this.getTile(tile.x, tile.y);
+            $tile.find('.' + targetClass).detach();
+            $tile.append('<span class="stat ' + targetClass + '">' + targetValue + '</span>');
+            return this;
+        },
+
         setTile: function (tile, status) {
             var $tile = this.getTile(tile.x, tile.y);
 
@@ -217,7 +239,7 @@ $(document).ready(function () {
                 return;
             }
 
-            $tile.attr('data-status', status);
+            $tile.attr('data-status', status).html('');
 
             // If stats are present set them
             if (tile.f) {
