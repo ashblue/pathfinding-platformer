@@ -11,6 +11,8 @@ $(document).ready(function () {
         $BTN_END = $('#set-end'),
         $BTN_LV = $('#set-lv'),
         $BTN_CLEARANCE = $('#show-clearance'),
+        $BTN_PLATFORMER = $('#show-movement'),
+        $BTN_JUMP = $('#show-jump'),
         _map_width_count,
         _map_height_count,
         _setStatus = null;
@@ -21,7 +23,8 @@ $(document).ready(function () {
         closed: '[data-status=closed]',
         setOpened: '[data-status=set-opened]',
         setClosed: '[data-status=set-closed]',
-        path: '[data-status=path]'
+        path: '[data-status=path]',
+        jump: '[data-status=jump]'
     };
 
     var _event = {
@@ -92,22 +95,55 @@ $(document).ready(function () {
         },
 
         showClearance: function () {
+            jp.map.setData(jp.visual.getCollisionMap());
+
             var dataClearance = jp.map.dataClearance;
             var width = jp.map.getWidthInTiles();
             var height = jp.map.getHeightInTiles();
-            var x = 0, y = 0;
+            var x, y;
 
             for (y = 0; y < height; y++) {
                 for (x = 0; x < width; x++) {
                     jp.visual.setTileValue({x: x, y: y}, 'c', dataClearance[y][x]);
                 }
             }
+        },
+
+        showPlatformer: function () {
+            jp.map.setData(jp.visual.getCollisionMap());
+
+            var dataMovePaths = jp.map.dataMovePaths;
+            var width = jp.map.getWidthInTiles();
+            var height = jp.map.getHeightInTiles();
+            var x, y, output, tile;
+
+            for (y = 0; y < height; y++) {
+                for (x = 0; x < width; x++) {
+                    tile = dataMovePaths[y][x];
+                    output = tile.type;
+                    if (tile.clearance) output += '-' + tile.clearance;
+                    jp.visual.setTileValue({x: x, y: y}, 'm', output);
+                }
+            }
+        },
+
+        showJump: function () {
+            jp.map.setData(jp.visual.getCollisionMap());
+            jp.visual.clearPath();
+
+            var begin = jp.visual.getBegin();
+            var end = jp.visual.getEnd();
+            var jumpPath = jp.jump.getJumpPath(begin.x, begin.y, end.x, end.y);
+
+            for (var i = 0, len = jumpPath.length; i < len; i++) {
+                jp.visual.setTileStatus(jumpPath[i], 'jump');
+            }
         }
     };
 
     jp.visual = {
         init: function () {
-            this.createMap('map', 18, 8)
+            this.createMap('map', 18, 12)
                 .bind()
                 .setStatus({ x: 2, y: 1 }, 'begin')
                 .setStatus({ x: 1, y: 7 }, 'end')
@@ -151,6 +187,8 @@ $(document).ready(function () {
             $BTN_START.click(_event.activeStart);
             $BTN_END.click(_event.activeEnd);
             $BTN_CLEARANCE.click(_event.showClearance);
+            $BTN_PLATFORMER.click(_event.showPlatformer);
+            $BTN_JUMP.click(_event.showJump);
 
             return this;
         },
@@ -224,6 +262,14 @@ $(document).ready(function () {
             return this;
         },
 
+        setTileStatus: function (tile, status) {
+            var $tile = this.getTile(tile.x, tile.y);
+            var currentStatus = $tile.attr('data-status');
+            if (currentStatus === 'begin' || currentStatus === 'end' || currentStatus === 'closed') return this;
+            $tile.attr('data-status', status);
+            return this;
+        },
+
         setTileValue: function (tile, targetClass, targetValue) {
             var $tile = this.getTile(tile.x, tile.y);
             $tile.find('.' + targetClass).detach();
@@ -278,7 +324,7 @@ $(document).ready(function () {
         // Remove opened set, closed set, and path tiles from the map
         clearPath: function () {
             $MAP_TILES.html('');
-            $(TILES.setClosed + ', ' + TILES.setOpened + ', ' + TILES.path).attr('data-status', 'open');
+            $(TILES.setClosed + ', ' + TILES.setOpened + ', ' + TILES.path + ', ' + TILES.jump).attr('data-status', 'open');
             return this;
         }
     };

@@ -20,10 +20,12 @@ $(document).ready(function () {
     jp.map = {
         dataCollision: null, // Current map with collision tiles (0 or 1)
         dataClearance: null, // Post processed dataCollision map with clearance
+        dataMovePaths: null,
 
         setData: function (map) {
             this.dataCollision = map;
-            return this.updateClearance();
+            return this.updateClearance()
+                .updateMovePaths(parseInt($('#input-move-clearance').val(), 10));
         },
 
         /**
@@ -33,18 +35,108 @@ $(document).ready(function () {
          * @TODO Not a bad idea to break the map into sub-quadrants for detecting changes
          */
         updateClearance: function () {
-            var x, y, width, height;
+            var x, y,  width = this.getWidthInTiles(), height = this.getHeightInTiles();
 
             this.dataClearance = [];
 
-            for (y = 0, height = this.getHeightInTiles(); y < height; y++) {
+            for (y = 0; y < height; y++) {
                 this.dataClearance.push([]);
-                for (x = 0, width = this.getWidthInTiles(); x < width; x++) {
+                for (x = 0; x < width; x++) {
                     // Recursively check clearance until false is return
                     // set clearance equal to number of recursive checks
                     this.dataClearance[y].push(_private.recursiveClearance(x, y, 1));
                 }
             }
+
+            return this;
+        },
+
+        updateMovePaths: function (maxHeight) {
+            var x, y, cY,  width = this.getWidthInTiles(), height = this.getHeightInTiles(), clearance;
+            var edges = [];
+            var tmp;
+
+            this.dataMovePaths = [];
+
+            for (y = 0; y < height; y++) {
+                this.dataMovePaths.push([]);
+
+                for (x = 0; x < width; x++) {
+                    // record open tiles with a closed tile directly below
+                    if (!this.blocked(x, y) && this.blocked(x, y + 1) && !_private.outOfBounds(x, y + 1)) {
+                        // get clearance value by going up until we hit a blocked tile or "maxHeight", record the clearance
+                        for (cY = y, clearance = 0; cY >= 0; cY--) {
+                            clearance = this.dataClearance[cY][x];
+                            if (this.blocked(x, cY - 1) || clearance >= maxHeight) break;
+                        }
+
+                        // if the bottom right or left corner is missing a tile mark it as a ledge
+                        if (this.blocked(x + 1, y + 1) && this.blocked(x - 1, y + 1)) {
+                            this.dataMovePaths[y].push({ type: 1, clearance: clearance });
+                        } else if (!this.blocked(x + 1, y + 1) && !this.blocked(x - 1, y + 1)) {
+                            tmp = { type: 2, clearance: clearance, direction: 0, connections: [], x: x, y: y };
+                            edges.push(tmp);
+                            this.dataMovePaths[y].push(tmp);
+                        } else if (this.blocked(x - 1, y + 1)) {
+                            tmp = { type: 2, clearance: clearance, direction: 1, connections: [], x: x, y: y };
+                            edges.push(tmp);
+                            this.dataMovePaths[y].push(tmp);
+                        } else {
+                            tmp = { type: 2, clearance: clearance, direction: -1, connections: [], x: x, y: y };
+                            edges.push(tmp);
+                            this.dataMovePaths[y].push(tmp);
+                        }
+
+                    } else {
+                        this.dataMovePaths[y].push({ type: 0 });
+                    }
+                }
+            }
+
+            // Loop through all collected edges and attempt to connect them if possible
+            var maxJump = parseInt($('#input-max-jump').val(), 10), startX, endX, startY, endY;
+            for (var i = 0, len = edges.length; i < len; i++) {
+
+                // Determine x look direction
+                if (edges[i].direction === 1) {
+                    startX = edges[i].x;
+                    endX = edges[i].x + maxJump;
+                } else if (edges[i].direction === -1) {
+                    startX = edges[i].x - maxJump;
+                    endX = edges[i].x;
+                } else {
+                    startX = edges[i].x - maxJump;
+                    endX = edges[i].x + maxJump;
+                }
+
+                // Y look direction
+                startY = edges[i].y - maxJump;
+                endY = edges[i].y + maxJump;
+
+                for (var j = 0, len = edges.length; j < len; j++) {
+                    if (edges[i].x !== edges[j].x && // Skip same x index
+                        (edges[i].direction !== edges[j].direction || edges[j].direction === 0) && // Do the directions align?
+                        edges[j].x > startX && edges[j].x < endX && edges[j].y > startY && edges[j].y < endY) { // Inside search area?
+                        console.log('hit ledge', edges[j].x, edges[j].y, 'from', edges[i].x, edges[i].y);
+                    }
+
+                    // Ledges both facing the opposite direction
+                    // Contained inside start and end square
+                    // Parabola line test
+                    // All good, push ledge into connections
+                }
+            }
+
+                    // Step out in the direction of the ledge, then search voxels with a radius from top to bottom, direction to opposite direction
+                    // (as if a light is being shined)
+                    // If we've found a ledge test with the parabola line jump test
+                    // Success? connect both ledges (verify neither is already connected)
+
+                    // @TODO We need to discover all possible jump connections from a jump point
+                    // use jump radius, go up 1, then follow up till on even y (if above), or over until even x, then go down
+                    // or look at clearance and subtract 1 for
+                    // @TODO for each ledge we need to perform an angled drop test to discover possible jump points (add jump point as 2, should only connect to from drop to ledge)
+                    // @TODO for each ledge we must also consider a straight drop down (only valid if there is something to land on) type is = 3
 
             return this;
         },

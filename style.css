@@ -62,6 +62,8 @@ button.active {
       background: #9FD6D2; }
     .map .map-tile[data-status="path"] {
       background: #f0f; }
+    .map .map-tile[data-status="jump"] {
+      background: #07f; }
 
 .cf:before, .cf:after {
   content: " ";
@@ -75,6 +77,10 @@ form label {
   display: block;
   font-size: 120%;
   font-weight: bold; }
+  form label small {
+    font-size: 14px;
+    font-weight: normal;
+    letter-spacing: 0; }
 form ul {
   list-style: none; }
   form ul li {
@@ -84,7 +90,8 @@ form input {
   width: 50px; }
 
 .stat {
-  position: absolute; }
+  position: absolute;
+  font-size: 11px; }
 
 .stat.f,
 .stats-preview .f {
@@ -111,13 +118,25 @@ form input {
   right: 3px;
   opacity: 0.5; }
 
+.stats-preview .m {
+  position: absolute;
+  top: 35px;
+  left: 20px;
+  text-align: center; }
+
+.stat.m {
+  position: absolute;
+  top: 21px;
+  left: 16px;
+  text-align: center; }
+
 .stats-preview {
   width: 100px;
   height: 100px;
   background: #9FD6D2;
   border: 5px solid #aaa;
   display: block;
-  font-size: 30px;
+  font-size: 22px;
   position: relative; }
 
 .break {
