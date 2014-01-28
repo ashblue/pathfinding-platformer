@@ -90,12 +90,13 @@ $(document).ready(function () {
                 // Make sure ledges with two sides set two angled drops
                 if (ledge.direction !== 0) {
                     this.setAngledDrop(ledge.x, ledge.y, ledge.direction, maxJump * 3);
+                    this.setAnchor(ledge.x, ledge.y, ledge.direction, 10);
                 } else {
                     this.setAngledDrop(ledge.x, ledge.y, -1, maxJump * 3);
                     this.setAngledDrop(ledge.x, ledge.y, 1, maxJump * 3);
+                    this.setAnchor(ledge.x, ledge.y, 1, 10);
+                    this.setAnchor(ledge.x, ledge.y, -1, 10);
                 }
-
-                // @TODO Identify fall points
 
             }
 
@@ -132,8 +133,12 @@ $(document).ready(function () {
                         targetTile.type = 2;
                         targetTile.x = x;
                         targetTile.y = y;
+
                         if (!targetTile.connections) targetTile.connections = [];
-                        if (!targetTile.id) targetTile.id = this.getConnectionId();
+                        if (!targetTile.id) {
+                            targetTile.id = this.getConnectionId();
+                            this.setConnection(targetTile);
+                        }
 
                         // Connect ids of both tiles
                         this.addTileConnection(originTile, targetTile.id, distance)
@@ -207,8 +212,26 @@ $(document).ready(function () {
         /**
          * Creates a fall map marker by dropping a straight line off the side until it hits bottom
          */
-        setAnchor: function (x, y, maxDepth) {
+        setAnchor: function (x, y, direction, maxDepth) {
+            x += direction;
+            for (var i = 0; i < maxDepth; i++) {
+                if (jp.map.blocked(x, y + i + 1) && !jp.map.outOfBounds(x, y + i + 1)) {
+                    var tile = this.getTile(x, y + i);
+                    tile.x = x;
+                    tile.y = y + i;
+                    tile.id = this.getConnectionId();
 
+                    this.addTileConnection(this.getTile(x - direction, y), tile.id, i);
+
+                    break;
+                }
+
+                if (jp.map.outOfBounds(x, y + i + 1)) break;
+            }
+
+            if (this.debug) jp.draw.setLine(x, y, x, y + i, 'yellow');
+
+            return this;
         },
 
         setConnection: function (tile) {
