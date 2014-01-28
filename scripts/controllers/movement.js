@@ -1,5 +1,4 @@
-// @TODO Break up movement code into easier to digest API commands
-// @TODO Break up clearance code into easier to digest API commands
+// @TODO Connections are missing a jump cost, these should be normalized into a method addTileConnection(id, jumpCost);
 var jp = jp || {};
 
 $(document).ready(function () {
@@ -87,13 +86,74 @@ $(document).ready(function () {
             while (ledges.length > 0) {
                 ledge = ledges.pop();
                 this.setLedgeConnections(ledge, ledges, maxJump);
-                // Look for relationships between ledges
-                // Angled drop test to discover jump points
-                // Identify fall points
+
+                // Make sure ledges with two sides set two angled drops
+                if (ledge.direction !== 0) {
+                    this.setAngledDrop(ledge.x, ledge.y, ledge.direction, maxJump * 3);
+                } else {
+                    this.setAngledDrop(ledge.x, ledge.y, -1, maxJump * 3);
+                    this.setAngledDrop(ledge.x, ledge.y, 1, maxJump * 3);
+                }
+
+                // @TODO Identify fall points
 
             }
 
             if (this.debug) console.log('Movement pre-cache time', Date.now() - start, 'ms');
+
+            return this;
+        },
+
+        addTileConnection: function (tile, id, cost) {
+            tile.connections.push({
+                id: id,
+                cost: cost
+            });
+
+            return this;
+        },
+
+        setAngledDrop: function (xO, yO, direction, maxDepth) {
+            var distance, originTile, targetTile, len, i,
+                x = xO + direction,
+                y = yO + 1;
+
+            while (y < maxDepth) {
+                for (i = 0, len = 2; i < len; i++, y++) {
+
+                    // Check below to see if we hit a tile
+                    if (jp.map.blocked(x, y + 1) && !jp.map.outOfBounds(x, y + 1)) {
+//                    if (jp.map.blocked(x, y + 1)) {
+                        distance = jp.helper.distanceM(xO, yO, x, y);
+                        originTile = this.getTile(xO, yO);
+
+                        // @TODO Normalize this into a method and use throughout this file
+                        targetTile = this.getTile(x, y);
+                        targetTile.type = 2;
+                        targetTile.x = x;
+                        targetTile.y = y;
+                        if (!targetTile.connections) targetTile.connections = [];
+                        if (!targetTile.id) targetTile.id = this.getConnectionId();
+
+                        // Connect ids of both tiles
+                        this.addTileConnection(originTile, targetTile.id, distance)
+                            .addTileConnection(targetTile, originTile.id, distance);
+
+                        if (this.debug) jp.draw.setLine(xO, yO, x, y, '#00f');
+
+                        return this;
+                    }
+
+                    if (y > yO + maxDepth || jp.map.outOfBounds(x, y + 1)) {
+                        if (this.debug) jp.draw.setLine(xO, yO, x, y, 'rgba(0, 0, 255, 0.4)');
+                        return this;
+                    }
+                }
+
+                x += direction;
+            }
+
+            if (this.debug) jp.draw.setLine(xO, yO, x, y, 'rgba(0, 0, 255, 0.4)');
 
             return this;
         },
@@ -105,7 +165,7 @@ $(document).ready(function () {
          * @param maxJump {number} Maximum jump we'll look for (determines search distance on ledges)
          */
         setLedgeConnections: function (l, ledges, maxJump) {
-            var startX, endX, startY, endY;
+            var startX, endX, startY, endY, distance;
 
             // We need to pre-cache a search area to look
             // Determine x direction to look in
@@ -131,17 +191,24 @@ $(document).ready(function () {
                     jp.jump.isJumpPossible(l.x, l.y, ledges[i].x, ledges[i].y)) {
 
                     // We have a positive, link both
+                    distance = jp.helper.distanceM(l.x, l.y, ledges[i].x, ledges[i].y);
+                    this.addTileConnection(l, ledges[i].id, distance);
                     l.connections.push(ledges[i].id);
                     ledges[i].connections.push(l.id);
 
-                    // @TODO If debug is on draw a line between both points
-                    if (this.debug) {
-                        jp.draw.setLine(l.x, l.y, ledges[i].x, ledges[i].y, '#0f0');
-                    }
+                    // Visually connect ledges
+                    if (this.debug) jp.draw.setLine(l.x, l.y, ledges[i].x, ledges[i].y, '#0f0');
                 }
             }
 
             return this;
+        },
+
+        /**
+         * Creates a fall map marker by dropping a straight line off the side until it hits bottom
+         */
+        setAnchor: function (x, y, maxDepth) {
+
         },
 
         setConnection: function (tile) {
@@ -199,10 +266,9 @@ $(document).ready(function () {
             return this.map[y][x];
         },
 
-
-
         setTile: function (x, y, value) {
-
+            this.map[y][x] = value;
+            return this;
         }
     };
 });

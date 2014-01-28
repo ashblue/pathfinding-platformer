@@ -84,6 +84,7 @@ $(document).ready(function () {
         },
 
         togglePlatformer: function () {
+            jp.draw.clearLines();
             jp.movement.debug = !jp.movement.debug;
             jp.visual.showPlatformer();
         },
