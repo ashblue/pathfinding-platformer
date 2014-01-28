@@ -90,6 +90,17 @@ form ul {
 form input {
   width: 50px; }
 
+#map-wrapper {
+  position: relative;
+  padding-top: 20px; }
+
+.grid-container {
+  position: absolute;
+  left: 0;
+  top: 0; }
+  .grid-container.y {
+    top: 20px; }
+
 .grid {
   opacity: 0.8; }
   .grid.x {
@@ -99,10 +110,12 @@ form input {
     float: left;
     margin-bottom: 5px; }
   .grid.y {
-    line-height: 40px;
-    position: absolute;
-    top: 0;
-    margin-left: -20px; }
+    line-height: 42px;
+    display: block;
+    height: 42px;
+    margin-left: -45px;
+    text-align: right;
+    width: 40px; }
 
 .stat {
   position: absolute;

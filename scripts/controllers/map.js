@@ -2,6 +2,9 @@ var jp = jp || {};
 
 $(document).ready(function () {
     var _private = {
+        /**
+         * @deprecated Moved into map object
+         */
         outOfBounds: function (x, y) {
             return x < 0 || x >= jp.map.dataCollision[0].length ||
                 y < 0 || y >= jp.map.dataCollision.length;
@@ -15,7 +18,9 @@ $(document).ready(function () {
 
         setData: function (map) {
             this.dataCollision = map;
-            jp.clearance.setMap(this.getWidthInTiles(), this.getHeightInTiles());
+            var width = this.getWidthInTiles(), height = this.getHeightInTiles();
+            jp.clearance.setMap(width, height);
+            jp.movement.setMap(width, height, parseInt($('#input-move-clearance').val(), 10)); //
 
             // @TODO Temorarily disabled due to bugs
             return this;
@@ -29,7 +34,6 @@ $(document).ready(function () {
          * @returns {jp.map}
          */
         updateMovePaths: function (maxHeight) {
-            var start = Date.now();
             var x, y, cY,  width = this.getWidthInTiles(), height = this.getHeightInTiles(), clearance;
             var edges = [];
             var tmp;
@@ -267,6 +271,11 @@ $(document).ready(function () {
             if (!left) sides.push(new jp.Tile(x - 1, y));
 
             return sides;
+        },
+
+        outOfBounds: function (x, y) {
+            return x < 0 || x >= this.dataCollision[0].length ||
+                y < 0 || y >= this.dataCollision.length;
         },
 
         getNeighbors: function (x, y, corners) {

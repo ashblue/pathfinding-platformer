@@ -133,6 +133,21 @@ form {
   }
 }
 
+#map-wrapper {
+  position: relative;
+  padding-top: 20px;
+}
+
+.grid-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  &.y {
+    top: 20px;
+  }
+}
+
 .grid {
   opacity: 0.8;
 
@@ -145,10 +160,12 @@ form {
   }
   
   &.y {
-    line-height: 40px;
-    position: absolute;
-    top: 0;
-    margin-left: -20px;
+    line-height: 42px;
+    display: block;
+    height: 42px;
+    margin-left: -45px;
+    text-align: right;
+    width: 40px;
   }
 }
 

@@ -36,7 +36,33 @@ $(document).ready(function () {
                 }
             }
 
+            if (this.debug) console.log('clearance compute time', (Date.now() - start) / 1000);
+
             return this;
+        },
+
+        /**
+         * The flat value of a clearance tile represents the maximum vertical height a tile could support on a flat plane.
+         * Mostly used to measure clearance from a single location instead of crawling through up through the whole map
+         * @param x {number} Start position x
+         * @param y {number} Start postion y
+         * @param maxHeight {number} If the clearance value exceeds this it will stop the search loop early
+         * @returns {number} Verical clearance value
+         */
+        getFlatValue: function (x, y, maxHeight) {
+            for (var yC = y - 1, clearance, clearancePrev = 0; yC >= 0; yC--) {
+                clearance = this.getTile(x, yC);
+
+                // Double check not blocked or at maxHeight
+                if (jp.map.blocked(x, yC) || clearance >= maxHeight) return clearance;
+
+                // If the value is going down return the previous value
+                if (clearancePrev >= clearance) return clearancePrev;
+
+                clearancePrev = clearance;
+            }
+
+            return clearance;
         },
 
         setTile: function (x, y, value) {

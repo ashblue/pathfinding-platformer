@@ -50,7 +50,8 @@ $(document).ready(function () {
                 $(this).attr('data-status', 'closed');
             }
 
-            jp.visual.showClearance();
+            jp.visual.showClearance()
+                .showPlatformer();
         },
 
         activeStart: function () {
@@ -82,22 +83,9 @@ $(document).ready(function () {
             jp.visual.showClearance();
         },
 
-        showPlatformer: function () {
-            jp.map.setData(jp.visual.getCollisionMap());
-
-            var dataMovePaths = jp.map.dataMovePaths;
-            var width = jp.map.getWidthInTiles();
-            var height = jp.map.getHeightInTiles();
-            var x, y, output, tile;
-
-            for (y = 0; y < height; y++) {
-                for (x = 0; x < width; x++) {
-                    tile = dataMovePaths[y][x];
-                    output = tile.type;
-                    if (tile.clearance) output += '-' + tile.clearance;
-                    jp.visual.setTileValue({x: x, y: y}, 'm', output);
-                }
-            }
+        togglePlatformer: function () {
+            jp.movement.debug = !jp.movement.debug;
+            jp.visual.showPlatformer();
         },
 
         showJump: function () {
@@ -191,7 +179,6 @@ $(document).ready(function () {
 
             for (y = 0; y < height; y++) {
                 $row = $('<div class="map-row"></div>');
-                $row.append('<span class="grid y">' + y + '</span>');
                 for (x = 0; x < width; x++) {
                     $row.append('<div class="map-tile" data-x="' + x + '" data-y="' + y + '"></div>');
                 }
@@ -203,11 +190,13 @@ $(document).ready(function () {
             for (x = 0; x < width; x++) {
                 xAxis += '<span class="grid x">' + x + '</span>';
             }
-            $MAP.before('<div class="grid-container">' + xAxis + '</div>');
+            $MAP.before('<div class="grid-container x">' + xAxis + '</div>');
 
-//            $('.map-row:first .map-tile').each(function (i) {
-//                $(this).prepend('<span class="grid x">' + i + '</span>');
-//            });
+            var yAxis = '';
+            for (y = 0; y < height; y++) {
+                yAxis += '<span class="grid y">' + y + '</span>';
+            }
+            $MAP.before('<div class="grid-container y">' + yAxis + '</div>');
 
             return this;
         },
@@ -221,7 +210,7 @@ $(document).ready(function () {
             $BTN_START.click(_event.activeStart);
             $BTN_END.click(_event.activeEnd);
             $BTN_CLEARANCE.click(_event.toggleClearance);
-            $BTN_PLATFORMER.click(_event.showPlatformer);
+            $BTN_PLATFORMER.click(_event.togglePlatformer);
             $BTN_JUMP.click(_event.showJump);
             $BTN_SAVE_MAP.click(this.saveMap.bind(this));
             $BTN_LOAD_MAP.click(this.loadMap.bind(this));
@@ -245,6 +234,31 @@ $(document).ready(function () {
             } else {
                 $('.map-tile').find('.c').detach();
             }
+
+            return this;
+        },
+
+        showPlatformer: function () {
+            if (jp.movement.debug) {
+                jp.map.setData(jp.visual.getCollisionMap());
+
+                var width = jp.map.getWidthInTiles();
+                var height = jp.map.getHeightInTiles();
+                var x, y, output, tile;
+
+                for (y = 0; y < height; y++) {
+                    for (x = 0; x < width; x++) {
+                        tile = jp.movement.getTile(x, y);
+                        output = tile.type;
+                        if (tile.clearance) output += '-' + tile.clearance;
+                        jp.visual.setTileValue({x: x, y: y}, 'm', output);
+                    }
+                }
+            } else {
+                $('.map-tile').find('.m').detach();
+            }
+
+            return this;
         },
 
         // Gets status from the dom, count starts at 0
