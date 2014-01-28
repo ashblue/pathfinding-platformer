@@ -107,8 +107,6 @@ $(document).ready(function () {
             this.createMap('map', 18, 12)
                 .bind()
                 .loadMap();
-
-            jp.map.setData(this.getCollisionMap());
         },
 
         /**
@@ -139,12 +137,13 @@ $(document).ready(function () {
                     }
                 }
 
+                jp.map.setData(this.getCollisionMap());
+
                 // Set special tiles
                 this.setBegin(begin.x, begin.y)
                     .setEnd(end.x, end.y);
 
                 // Update map data
-//                jp.map.setData(this.getCollisionMap());
             } else {
                 this.setStatus({ x: 10, y: 3 }, 'begin')
 
@@ -166,6 +165,8 @@ $(document).ready(function () {
                     .setStatus({ x: 14, y: 10 }, 'closed')
                     .setStatus({ x: 15, y: 10 }, 'closed')
                     .setStatus({ x: 16, y: 10 }, 'closed');
+
+                jp.map.setData(this.getCollisionMap());
             }
 
             return this;
@@ -383,7 +384,6 @@ $(document).ready(function () {
 
         setBegin: function (xTarget, yTarget) {
             var $el = this.getTile(xTarget, yTarget);
-            jp.map.setData(jp.visual.getCollisionMap());
 
             // Verify there is proper clearance around the player before placing
             var playerSize = jp.visual.getPlayerSize(),

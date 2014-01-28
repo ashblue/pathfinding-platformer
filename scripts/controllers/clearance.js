@@ -36,7 +36,7 @@ $(document).ready(function () {
                 }
             }
 
-            if (this.debug) console.log('clearance compute time', (Date.now() - start) / 1000);
+            if (this.debug) console.log('clearance compute time', Date.now() - start);
 
             return this;
         },

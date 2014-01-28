@@ -71,7 +71,6 @@ $(document).ready(function () {
                     if (tile.type === 2) {
                         tile.id = this.getConnectionId();
                         tile.connections = [];
-                        console.log(tile);
                         this.setConnection(tile);
                         edges.push(tile);
                     }
@@ -86,6 +85,10 @@ $(document).ready(function () {
                 // Angled drop test to discover jump points
                 // Identify fall points
             }
+
+            if (this.debug) console.log('Movement pre-cache time', Date.now() - start);
+
+            return this;
         },
 
         setConnection: function (tile) {
