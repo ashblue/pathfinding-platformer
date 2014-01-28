@@ -24,8 +24,10 @@ $(document).ready(function () {
 
         setData: function (map) {
             this.dataCollision = map;
-            return this.updateClearance()
-                .updateMovePaths(parseInt($('#input-move-clearance').val(), 10));
+
+            // @TODO Temorarily disabled due to bugs
+            return this.updateClearance();
+//                .updateMovePaths(parseInt($('#input-move-clearance').val(), 10));
         },
 
         /**

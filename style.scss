@@ -201,6 +201,10 @@ form {
 
 .legend-wrapper {
     float: right;
+
+  * {
+    display: block;
+  }
 }
 
 .legend {

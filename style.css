@@ -148,6 +148,8 @@ form input {
 
 .legend-wrapper {
   float: right; }
+  .legend-wrapper * {
+    display: block; }
 
 .legend {
   padding: 0;

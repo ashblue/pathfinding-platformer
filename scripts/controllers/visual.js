@@ -10,6 +10,8 @@ $(document).ready(function () {
         $BTN_START = $('#set-begin'),
         $BTN_END = $('#set-end'),
         $BTN_LV = $('#set-lv'),
+        $BTN_SAVE_MAP = $('#map-save'),
+        $BTN_LOAD_MAP = $('#map-load'),
         $BTN_CLEARANCE = $('#show-clearance'),
         $BTN_PLATFORMER = $('#show-movement'),
         $BTN_JUMP = $('#show-jump'),
@@ -36,32 +38,11 @@ $(document).ready(function () {
             if (status === 'begin' || status === 'end') { // Do not set begin and end tiles
                 return;
             } else if (_setStatus === 'begin') {
-                jp.map.setData(jp.visual.getCollisionMap());
-
-                // Verify there is proper clearance around the player before placing
-                var playerSize = jp.visual.getPlayerSize(),
-                    xPos = parseInt($el.attr('data-x'), 10),
-                    yPos = parseInt($el.attr('data-y'));
-                if (jp.visual.getPlayerSize() > jp.map.getClearance(xPos, yPos))
-                    return;
-
                 $BTNS.attr('class', '');
-                $MAP.find(TILES.begin).attr('data-status', 'open');
-
-                // Create a square equal to player size
-                var x, y;
-                for (y = 0; y < playerSize; y++) {
-                    for (x = 0; x < playerSize; x++) {
-                        $('div[data-x="' + (xPos + x) +'"][data-y="' + (yPos + y) + '"]').attr('data-status', 'begin');
-                    }
-                }
-                $(this).attr('data-status', 'begin');
-
-                _setStatus = null;
+                jp.visual.setBegin(parseInt($el.attr('data-x'), 10), parseInt($el.attr('data-y'), 10));
             } else if (_setStatus === 'end') {
                 $BTNS.attr('class', '');
-                $MAP.find(TILES.end).attr('data-status', 'open');
-                $(this).attr('data-status', 'end');
+                jp.visual.setEnd(parseInt($el.attr('data-x'), 10), parseInt($el.attr('data-y'), 10));
                 _setStatus = null;
             } else if (status === 'closed') {
                 $(this).attr('data-status', 'open');
@@ -145,18 +126,69 @@ $(document).ready(function () {
         init: function () {
             this.createMap('map', 18, 12)
                 .bind()
-                .setStatus({ x: 2, y: 1 }, 'begin')
-                .setStatus({ x: 1, y: 7 }, 'end')
-                .setStatus({ x: 0, y: 2 }, 'closed')
-                .setStatus({ x: 0, y: 3 }, 'closed')
-                .setStatus({ x: 1, y: 2 }, 'closed')
-                .setStatus({ x: 1, y: 3 }, 'closed')
-                .setStatus({ x: 2, y: 2 }, 'closed')
-                .setStatus({ x: 2, y: 3 }, 'closed')
-                .setStatus({ x: 3, y: 2 }, 'closed')
-                .setStatus({ x: 3, y: 3 }, 'closed');
+                .loadMap();
 
             jp.map.setData(this.getCollisionMap());
+        },
+
+        /**
+         * Gets the current map and saves it to local storage as a serialized array
+         */
+        saveMap: function () {
+            localStorage.setItem('begin', JSON.stringify(this.getBegin()));
+            localStorage.setItem('end', JSON.stringify(this.getEnd()));
+            localStorage.setItem('mapCollision', JSON.stringify(this.getCollisionMap()));
+        },
+
+        /**
+         * Gets the previously saved map in local storage or generates a default one
+         */
+        loadMap: function () {
+            var begin = JSON.parse(localStorage.getItem('begin')),
+                end = JSON.parse(localStorage.getItem('end')),
+                mapCollision = JSON.parse(localStorage.getItem('mapCollision'));
+
+            this.erase();
+
+            if (begin && end && mapCollision) {
+                var x, xLen;
+                // Loop Through and place all blocked tiles
+                for (var y = 0, yLen = mapCollision.length; y < yLen; y++) {
+                    for (x = 0, xLen = mapCollision[0].length; x < xLen; x++) {
+                        if (mapCollision[y][x] === 0) this.setClosed(x, y);
+                    }
+                }
+
+                // Set special tiles
+                this.setBegin(begin.x, begin.y)
+                    .setEnd(end.x, end.y);
+
+                // Update map data
+//                jp.map.setData(this.getCollisionMap());
+            } else {
+                this.setStatus({ x: 10, y: 3 }, 'begin')
+
+                    .setStatus({ x: 14, y: 9 }, 'end')
+
+                    .setStatus({ x: 8, y: 4 }, 'closed')
+                    .setStatus({ x: 9, y: 4 }, 'closed')
+                    .setStatus({ x: 10, y: 4 }, 'closed')
+                    .setStatus({ x: 11, y: 4 }, 'closed')
+                    .setStatus({ x: 12, y: 4 }, 'closed')
+
+                    .setStatus({ x: 4, y: 8 }, 'closed')
+                    .setStatus({ x: 5, y: 8 }, 'closed')
+                    .setStatus({ x: 6, y: 8 }, 'closed')
+                    .setStatus({ x: 7, y: 8 }, 'closed')
+                    .setStatus({ x: 8, y: 8 }, 'closed')
+
+                    .setStatus({ x: 13, y: 10 }, 'closed')
+                    .setStatus({ x: 14, y: 10 }, 'closed')
+                    .setStatus({ x: 15, y: 10 }, 'closed')
+                    .setStatus({ x: 16, y: 10 }, 'closed');
+            }
+
+            return this;
         },
 
         createMap: function (id, width, height) {
@@ -189,6 +221,8 @@ $(document).ready(function () {
             $BTN_CLEARANCE.click(_event.showClearance);
             $BTN_PLATFORMER.click(_event.showPlatformer);
             $BTN_JUMP.click(_event.showJump);
+            $BTN_SAVE_MAP.click(this.saveMap.bind(this));
+            $BTN_LOAD_MAP.click(this.loadMap.bind(this));
 
             return this;
         },
@@ -270,6 +304,11 @@ $(document).ready(function () {
             return this;
         },
 
+        setClosed: function (x, y) {
+            this.getTile(x, y)
+                .attr('data-status', 'closed');
+        },
+
         setTileValue: function (tile, targetClass, targetValue) {
             var $tile = this.getTile(tile.x, tile.y);
             $tile.find('.' + targetClass).detach();
@@ -306,6 +345,38 @@ $(document).ready(function () {
             }
 
             return this;
+        },
+
+        setBegin: function (xTarget, yTarget) {
+            var $el = this.getTile(xTarget, yTarget);
+            jp.map.setData(jp.visual.getCollisionMap());
+
+            // Verify there is proper clearance around the player before placing
+            var playerSize = jp.visual.getPlayerSize(),
+                xPos = parseInt($el.attr('data-x'), 10),
+                yPos = parseInt($el.attr('data-y'));
+            if (jp.visual.getPlayerSize() > jp.map.getClearance(xPos, yPos))
+                return;
+
+            $MAP.find(TILES.begin).attr('data-status', 'open');
+
+            // Create a square equal to player size
+            var x, y;
+            for (y = 0; y < playerSize; y++) {
+                for (x = 0; x < playerSize; x++) {
+                    $('div[data-x="' + (xPos + x) +'"][data-y="' + (yPos + y) + '"]').attr('data-status', 'begin');
+                }
+            }
+            $el.attr('data-status', 'begin');
+
+            _setStatus = null;
+
+            return this;
+        },
+
+        setEnd: function (x, y) {
+            $MAP.find(TILES.end).attr('data-status', 'open');
+            this.getTile(x, y).attr('data-status', 'end');
         },
 
         // Erase everything on the map except beginning and end points
