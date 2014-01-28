@@ -184,13 +184,14 @@ $(document).ready(function () {
         },
 
         createMap: function (id, width, height) {
-            var x, y, $row;
+            var x, y, $row, xAxis = '';
             _map_width_count = width;
             _map_height_count = height;
             $MAP = $('#' + id);
 
             for (y = 0; y < height; y++) {
                 $row = $('<div class="map-row"></div>');
+                $row.append('<span class="grid y">' + y + '</span>');
                 for (x = 0; x < width; x++) {
                     $row.append('<div class="map-tile" data-x="' + x + '" data-y="' + y + '"></div>');
                 }
@@ -198,6 +199,15 @@ $(document).ready(function () {
             }
 
             $MAP_TILES = $MAP.find('.map-tile');
+
+            for (x = 0; x < width; x++) {
+                xAxis += '<span class="grid x">' + x + '</span>';
+            }
+            $MAP.before('<div class="grid-container">' + xAxis + '</div>');
+
+//            $('.map-row:first .map-tile').each(function (i) {
+//                $(this).prepend('<span class="grid x">' + i + '</span>');
+//            });
 
             return this;
         },

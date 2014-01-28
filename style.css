@@ -38,7 +38,8 @@ button.active {
   .map .map-row {
     display: block;
     float: left;
-    line-height: 0; }
+    line-height: 0;
+    position: relative; }
   .map .map-tile {
     border: 1px solid #aaa;
     width: 40px;
@@ -88,6 +89,20 @@ form ul {
     margin-bottom: 10px; }
 form input {
   width: 50px; }
+
+.grid {
+  opacity: 0.8; }
+  .grid.x {
+    width: 42px;
+    text-align: center;
+    display: block;
+    float: left;
+    margin-bottom: 5px; }
+  .grid.y {
+    line-height: 40px;
+    position: absolute;
+    top: 0;
+    margin-left: -20px; }
 
 .stat {
   position: absolute;

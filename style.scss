@@ -46,6 +46,7 @@ button.active {
     display: block;
     float: left;
     line-height: 0;
+    position: relative;
   }
 
   .map-tile {
@@ -129,6 +130,25 @@ form {
 
   input {
     width: 50px;
+  }
+}
+
+.grid {
+  opacity: 0.8;
+
+  &.x {
+    width: 42px;
+    text-align: center;
+    display: block;
+    float: left;
+    margin-bottom: 5px;
+  }
+  
+  &.y {
+    line-height: 40px;
+    position: absolute;
+    top: 0;
+    margin-left: -20px;
   }
 }
 
