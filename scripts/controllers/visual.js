@@ -49,6 +49,8 @@ $(document).ready(function () {
             } else {
                 $(this).attr('data-status', 'closed');
             }
+
+            jp.visual.showClearance();
         },
 
         activeStart: function () {
@@ -75,19 +77,9 @@ $(document).ready(function () {
             _setStatus = 'end';
         },
 
-        showClearance: function () {
-            jp.map.setData(jp.visual.getCollisionMap());
-
-            var dataClearance = jp.map.dataClearance;
-            var width = jp.map.getWidthInTiles();
-            var height = jp.map.getHeightInTiles();
-            var x, y;
-
-            for (y = 0; y < height; y++) {
-                for (x = 0; x < width; x++) {
-                    jp.visual.setTileValue({x: x, y: y}, 'c', dataClearance[y][x]);
-                }
-            }
+        toggleClearance: function () {
+            jp.clearance.debug = !jp.clearance.debug;
+            jp.visual.showClearance();
         },
 
         showPlatformer: function () {
@@ -218,13 +210,29 @@ $(document).ready(function () {
             $MAP_TILES.click(_event.toggleState);
             $BTN_START.click(_event.activeStart);
             $BTN_END.click(_event.activeEnd);
-            $BTN_CLEARANCE.click(_event.showClearance);
+            $BTN_CLEARANCE.click(_event.toggleClearance);
             $BTN_PLATFORMER.click(_event.showPlatformer);
             $BTN_JUMP.click(_event.showJump);
             $BTN_SAVE_MAP.click(this.saveMap.bind(this));
             $BTN_LOAD_MAP.click(this.loadMap.bind(this));
 
             return this;
+        },
+
+        showClearance: function () {
+            if (!jp.clearance.debug) return this;
+
+            jp.map.setData(jp.visual.getCollisionMap());
+
+            var width = jp.map.getWidthInTiles();
+            var height = jp.map.getHeightInTiles();
+            var x, y;
+
+            for (y = 0; y < height; y++) {
+                for (x = 0; x < width; x++) {
+                    jp.visual.setTileValue({x: x, y: y}, 'c', jp.clearance.getTile(x, y));
+                }
+            }
         },
 
         // Gets status from the dom, count starts at 0
@@ -355,7 +363,7 @@ $(document).ready(function () {
             var playerSize = jp.visual.getPlayerSize(),
                 xPos = parseInt($el.attr('data-x'), 10),
                 yPos = parseInt($el.attr('data-y'));
-            if (jp.visual.getPlayerSize() > jp.map.getClearance(xPos, yPos))
+            if (jp.visual.getPlayerSize() > jp.clearance.getTile(xPos, yPos))
                 return;
 
             $MAP.find(TILES.begin).attr('data-status', 'open');

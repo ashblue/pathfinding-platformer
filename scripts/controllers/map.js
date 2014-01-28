@@ -5,15 +5,6 @@ $(document).ready(function () {
         outOfBounds: function (x, y) {
             return x < 0 || x >= jp.map.dataCollision[0].length ||
                 y < 0 || y >= jp.map.dataCollision.length;
-        },
-
-        recursiveClearance: function (xStart, yStart, distance) {
-            if (jp.map.isEdgeOpen(xStart, yStart, distance)) {
-                return _private.recursiveClearance(xStart, yStart, distance + 1);
-            }
-
-            // New distance failed, return it to the previous value
-            return distance - 1;
         }
     };
 
@@ -24,33 +15,12 @@ $(document).ready(function () {
 
         setData: function (map) {
             this.dataCollision = map;
+            jp.clearance.setMap(this.getWidthInTiles(), this.getHeightInTiles());
 
             // @TODO Temorarily disabled due to bugs
-            return this.updateClearance();
-//                .updateMovePaths(parseInt($('#input-move-clearance').val(), 10));
-        },
-
-        /**
-         * Each tile needs to have a square drawn around it from the top left to bottom right. In order to verify
-         * clearance capacity
-         * @IMPORTANT This should only be done when initially loading the map or updating existing map
-         * @TODO Not a bad idea to break the map into sub-quadrants for detecting changes
-         */
-        updateClearance: function () {
-            var x, y,  width = this.getWidthInTiles(), height = this.getHeightInTiles();
-
-            this.dataClearance = [];
-
-            for (y = 0; y < height; y++) {
-                this.dataClearance.push([]);
-                for (x = 0; x < width; x++) {
-                    // Recursively check clearance until false is return
-                    // set clearance equal to number of recursive checks
-                    this.dataClearance[y].push(_private.recursiveClearance(x, y, 1));
-                }
-            }
-
             return this;
+//            return this.updateClearance();
+//                .updateMovePaths(parseInt($('#input-move-clearance').val(), 10));
         },
 
         /**
@@ -246,10 +216,6 @@ $(document).ready(function () {
             return this;
         },
 
-        getClearance: function (x, y) {
-            return this.dataClearance[y][x];
-        },
-
         getWidthInTiles: function () {
             return this.dataCollision[0].length;
         },
@@ -271,25 +237,16 @@ $(document).ready(function () {
         },
 
         /**
-         * Returns an edge from a specific tile and all corresponding tiles. Note: All squares are drawn from the top
+         * Returns the bottom right edge of a square from a specific point. Note: All squares are drawn from the top
          * left to bottom right
-         * @param xStart
-         * @param yStart
+         * @param xStart Bottom right start point of the square's edge
+         * @param yStart Bottom left start point of the square's edge
          * @param distance
-         * @param [squareLocation]
          * @TODO Expand square location to take more parameters and return different edge pieces
          */
-        isEdgeOpen: function (xStart, yStart, distance, squareLocation) {
+        isEdgeOpen: function (xStart, yStart, distance) {
             var x, y, thresholdY, lenY, thresholdX, lenX;
             var count = 0;
-//            if (!squareLocation) squareLocation = 'bottom-right';
-
-            // Get bottom right edge of a square
-//            for (y = yStart, threshold = yStart + distance - 1; y < len; y++) {
-//                for (x = 0; x < len; x++) {
-//                    if ((x >= threshold || y >= threshold) && !this.blocked(x, y)) count += 1;
-//                }
-//            }
 
             for (y = yStart, lenY = yStart + distance, thresholdY = lenY - 1; y < lenY; y++) {
                 for (x = xStart, lenX = xStart + distance, thresholdX = lenX - 1; x < lenX; x++) {
