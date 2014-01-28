@@ -19,11 +19,13 @@ $(document).ready(function () {
          * @param width Width of the map
          * @param height Height of the map
          * @param maxHeight {number} Maximum height we will support for movement paths
+         * @param maxJump {number} Maximum jump distance we will calculate on the map, speeds up linking
+         * jump platforms together
          */
-        setMap: function (width, height, maxHeight) {
+        setMap: function (width, height, maxHeight, maxJump) {
             var start = Date.now(); // Used to record the total run time
-            var edges = []; // A collection
-            var x, y, tile, tileId;
+            var ledges = []; // A collection
+            var x, y, tile, ledge;
             this.maxHeight = maxHeight;
             this.connectionLib = {};
             this.connectionId = 0;
@@ -71,8 +73,10 @@ $(document).ready(function () {
                     if (tile.type === 2) {
                         tile.id = this.getConnectionId();
                         tile.connections = [];
+                        tile.x = x; // We have to record the x and y value for later when we loop through ledges, nasty but necessary
+                        tile.y = y;
                         this.setConnection(tile);
-                        edges.push(tile);
+                        ledges.push(tile);
                     }
 
                     this.map[y].push(tile);
@@ -80,13 +84,62 @@ $(document).ready(function () {
             }
 
             // Loop through all of our gathered ledges
-            for (var i = 0, len = edges.length; i < len; i++) {
+            while (ledges.length > 0) {
+                ledge = ledges.pop();
+                this.setLedgeConnections(ledge, ledges, maxJump);
                 // Look for relationships between ledges
                 // Angled drop test to discover jump points
                 // Identify fall points
+
             }
 
-            if (this.debug) console.log('Movement pre-cache time', Date.now() - start);
+            if (this.debug) console.log('Movement pre-cache time', Date.now() - start, 'ms');
+
+            return this;
+        },
+
+        /**
+         * Loops through and checks for a relationship between ledges
+         * @param l {object} The ledge itself
+         * @param ledges {array|object} An array of ledge objects
+         * @param maxJump {number} Maximum jump we'll look for (determines search distance on ledges)
+         */
+        setLedgeConnections: function (l, ledges, maxJump) {
+            var startX, endX, startY, endY;
+
+            // We need to pre-cache a search area to look
+            // Determine x direction to look in
+            if (l.direction === 1) {
+                startX = l.x;
+                endX = l.x + maxJump + 1; // Fix max jumps, computers start counting from 0
+            } else if (l.direction === -1) {
+                startX = l.x - maxJump - 1;
+                endX = l.x;
+            } else {
+                startX = l.x - maxJump - 1;
+                endX = l.x + maxJump + 1;
+            }
+
+            // Determine y direction to look
+            startY = l.y - maxJump;
+            endY = l.y + maxJump;
+
+            for (var i = 0, len = ledges.length; i < len; i++) {
+                if (l.x !== ledges[i].x && // Skip same x index
+                    (l.direction !== ledges[i].direction || ledges[i].direction === 0) && // Do the directions align?
+                    ledges[i].x > startX && ledges[i].x < endX && ledges[i].y > startY && ledges[i].y < endY && // Inside search area?
+                    jp.jump.isJumpPossible(l.x, l.y, ledges[i].x, ledges[i].y)) {
+
+                    // We have a positive, link both
+                    l.connections.push(ledges[i].id);
+                    ledges[i].connections.push(l.id);
+
+                    // @TODO If debug is on draw a line between both points
+                    if (this.debug) {
+
+                    }
+                }
+            }
 
             return this;
         },

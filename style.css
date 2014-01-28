@@ -92,7 +92,8 @@ form input {
 
 #map-wrapper {
   position: relative;
-  padding-top: 20px; }
+  padding-top: 20px;
+  margin-right: 160px; }
 
 .grid-container {
   position: absolute;
@@ -175,7 +176,8 @@ form input {
   margin-bottom: 10px; }
 
 .legend-wrapper {
-  float: right; }
+  float: right;
+  z-index: 10; }
   .legend-wrapper * {
     display: block; }
 

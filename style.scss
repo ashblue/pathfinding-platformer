@@ -136,6 +136,7 @@ form {
 #map-wrapper {
   position: relative;
   padding-top: 20px;
+  margin-right: 160px;
 }
 
 .grid-container {
@@ -238,6 +239,7 @@ form {
 
 .legend-wrapper {
     float: right;
+  z-index: 10;
 
   * {
     display: block;

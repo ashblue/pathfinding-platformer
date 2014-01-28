@@ -9,7 +9,6 @@ $(document).ready(function () {
 
         isJumpPossible: function (oX, oY, tX, tY) {
             var jumpPath = this.getJumpPath(oX, oY, tX, tY);
-            console.log(jumpPath);
             for (var i = 0, len = jumpPath.length; i < len; i++) {
                 if (jp.map.blocked(jumpPath[i].x, jumpPath[i].y)) {
                     console.log('invalid', jumpPath[i].x, jumpPath[i].y);

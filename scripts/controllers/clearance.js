@@ -36,7 +36,7 @@ $(document).ready(function () {
                 }
             }
 
-            if (this.debug) console.log('clearance compute time', Date.now() - start);
+            if (this.debug) console.log('clearance compute time', Date.now() - start, 'ms');
 
             return this;
         },

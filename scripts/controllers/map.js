@@ -20,7 +20,7 @@ $(document).ready(function () {
             this.dataCollision = map;
             var width = this.getWidthInTiles(), height = this.getHeightInTiles();
             jp.clearance.setMap(width, height);
-            jp.movement.setMap(width, height, parseInt($('#input-move-clearance').val(), 10));
+            jp.movement.setMap(width, height, parseInt($('#input-move-clearance').val(), 10), parseInt($('#input-max-jump').val(), 10));
 
             // @TODO Temorarily disabled due to bugs
             return this;
