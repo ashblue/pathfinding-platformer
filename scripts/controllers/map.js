@@ -257,7 +257,19 @@ $(document).ready(function () {
             return count === (distance - 1) * 2 + 1;
         },
 
-        getNeighbors: function (x, y) {
+        getSides: function (x, y) {
+            var sides = [],
+                right = this.blocked(x + 1, y),
+                left = this.blocked(x - 1, y);
+
+            // Check right, left, bottom, top
+            if (!right) sides.push(new jp.Tile(x + 1, y));
+            if (!left) sides.push(new jp.Tile(x - 1, y));
+
+            return sides;
+        },
+
+        getNeighbors: function (x, y, corners) {
             var neighbors = [],
                 right = this.blocked(x + 1, y),
                 left = this.blocked(x - 1, y),
@@ -272,10 +284,13 @@ $(document).ready(function () {
 
             // Check top left, bottom left, top right, bottom right
             // Side checks enforce that corners should not be clipped / ignored
-            if (!top && !left && !this.blocked(x - 1, y - 1)) neighbors.push(new jp.Tile(x - 1, y - 1));
-            if (!bottom && !left && !this.blocked(x - 1, y + 1)) neighbors.push(new jp.Tile(x - 1, y + 1));
-            if (!top && !right && !this.blocked(x + 1, y - 1)) neighbors.push(new jp.Tile(x + 1, y - 1));
-            if (!bottom && !right && !this.blocked(x + 1, y + 1)) neighbors.push(new jp.Tile(x + 1, y + 1));
+            // @NOTE Disabled as we don't want diagonals
+            if (corners) {
+                if (!top && !left && !this.blocked(x - 1, y - 1)) neighbors.push(new jp.Tile(x - 1, y - 1));
+                if (!bottom && !left && !this.blocked(x - 1, y + 1)) neighbors.push(new jp.Tile(x - 1, y + 1));
+                if (!top && !right && !this.blocked(x + 1, y - 1)) neighbors.push(new jp.Tile(x + 1, y - 1));
+                if (!bottom && !right && !this.blocked(x + 1, y + 1)) neighbors.push(new jp.Tile(x + 1, y + 1));
+            }
 
             return neighbors;
         },

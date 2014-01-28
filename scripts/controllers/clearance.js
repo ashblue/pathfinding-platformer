@@ -23,7 +23,7 @@ $(document).ready(function () {
          * @param height
          */
         setMap: function (width, height) {
-            var x, y;
+            var x, y, start = Date.now();
 
             this.map = [];
 

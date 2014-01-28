@@ -137,7 +137,7 @@ $(document).ready(function () {
                     if (!neighborRecord || stepCost < neighborRecord.g) {
                         if (!neighborRecord) {
                             // Reject the tile immediately if the player cannot fit into it
-                            if (this.playerSize > jp.map.getClearance(neighbors[i].x, neighbors[i].y)) continue;
+                            if (this.playerSize > jp.clearance.getTile(neighbors[i].x, neighbors[i].y)) continue;
                             this.addOpen(new jp.Step(neighbors[i].x, neighbors[i].y, xT, yT, stepCost, current));
                         } else {
                             neighborRecord.parent = current;

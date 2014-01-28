@@ -344,7 +344,7 @@ $(document).ready(function () {
             }
 
             // @TODO Should output on all tiles, even though it isn't, that is okay for now...
-            $tile.append('<span class="stat c">' + jp.map.dataClearance[tile.y][tile.x] + '</span>');
+            $tile.append('<span class="stat c">' + jp.clearance.getTile(tile.x, tile.y) + '</span>');
 
             return this;
         },
