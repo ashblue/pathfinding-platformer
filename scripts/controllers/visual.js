@@ -220,18 +220,20 @@ $(document).ready(function () {
         },
 
         showClearance: function () {
-            if (!jp.clearance.debug) return this;
+            if (jp.clearance.debug) {
+                jp.map.setData(jp.visual.getCollisionMap());
 
-            jp.map.setData(jp.visual.getCollisionMap());
+                var width = jp.map.getWidthInTiles();
+                var height = jp.map.getHeightInTiles();
+                var x, y;
 
-            var width = jp.map.getWidthInTiles();
-            var height = jp.map.getHeightInTiles();
-            var x, y;
-
-            for (y = 0; y < height; y++) {
-                for (x = 0; x < width; x++) {
-                    jp.visual.setTileValue({x: x, y: y}, 'c', jp.clearance.getTile(x, y));
+                for (y = 0; y < height; y++) {
+                    for (x = 0; x < width; x++) {
+                        jp.visual.setTileValue({x: x, y: y}, 'c', jp.clearance.getTile(x, y));
+                    }
                 }
+            } else {
+                $('.map-tile').find('.c').detach();
             }
         },
 
