@@ -51,13 +51,20 @@ $(document).ready(function () {
             return this;
         },
 
+        /**
+         * @TODO This is such a mess, should be moved into its own API file
+         * @param maxHeight
+         * @returns {jp.map}
+         */
         updateMovePaths: function (maxHeight) {
+            var start = Date.now();
             var x, y, cY,  width = this.getWidthInTiles(), height = this.getHeightInTiles(), clearance;
             var edges = [];
             var tmp;
 
             this.dataMovePaths = [];
 
+            // Discover locations of walkways and jumps
             for (y = 0; y < height; y++) {
                 this.dataMovePaths.push([]);
 
@@ -72,17 +79,17 @@ $(document).ready(function () {
 
                         // if the bottom right or left corner is missing a tile mark it as a ledge
                         if (this.blocked(x + 1, y + 1) && this.blocked(x - 1, y + 1)) {
-                            this.dataMovePaths[y].push({ type: 1, clearance: clearance });
+                            this.dataMovePaths[y].push({ type: 1, clearance: clearance, x: x, y: y });
                         } else if (!this.blocked(x + 1, y + 1) && !this.blocked(x - 1, y + 1)) {
-                            tmp = { type: 2, clearance: clearance, direction: 0, connections: [], x: x, y: y };
+                            tmp = { type: 2, clearance: clearance, direction: 0, cost: 1, connections: [], x: x, y: y };
                             edges.push(tmp);
                             this.dataMovePaths[y].push(tmp);
                         } else if (this.blocked(x - 1, y + 1)) {
-                            tmp = { type: 2, clearance: clearance, direction: 1, connections: [], x: x, y: y };
+                            tmp = { type: 2, clearance: clearance, direction: 1, cost: 1, connections: [], x: x, y: y };
                             edges.push(tmp);
                             this.dataMovePaths[y].push(tmp);
                         } else {
-                            tmp = { type: 2, clearance: clearance, direction: -1, connections: [], x: x, y: y };
+                            tmp = { type: 2, clearance: clearance, direction: -1, cost: 1, connections: [], x: x, y: y };
                             edges.push(tmp);
                             this.dataMovePaths[y].push(tmp);
                         }
@@ -113,30 +120,126 @@ $(document).ready(function () {
                 startY = edges[i].y - maxJump;
                 endY = edges[i].y + maxJump;
 
+                // Test against all other existing ledges
                 for (var j = 0, len = edges.length; j < len; j++) {
                     if (edges[i].x !== edges[j].x && // Skip same x index
                         (edges[i].direction !== edges[j].direction || edges[j].direction === 0) && // Do the directions align?
-                        edges[j].x > startX && edges[j].x < endX && edges[j].y > startY && edges[j].y < endY) { // Inside search area?
-                        console.log('hit ledge', edges[j].x, edges[j].y, 'from', edges[i].x, edges[i].y);
-                    }
+                        edges[j].x > startX && edges[j].x < endX && edges[j].y > startY && edges[j].y < endY && // Inside search area?
+                        jp.jump.isJumpPossible(edges[i].x, edges[i].y, edges[j].x, edges[j].y)) { // Does a quick jump simulation hit anything?
 
-                    // Ledges both facing the opposite direction
-                    // Contained inside start and end square
-                    // Parabola line test
-                    // All good, push ledge into connections
+                        // @TODO Create ledge connection
+                        console.log('hit ledge', edges[j].x, edges[j].y, 'from', edges[i].x, edges[i].y);
+                        var distance = jp.helper.distanceM(edges[i].x, edges[i].y, edges[j].x, edges[j].y);
+                        edges[i].connections.push({
+                            x: edges[j].x,
+                            y: edges[j].y,
+                            jumpDistance: distance, // Cost of in relative space jump
+                            cost: distance + 2 // Cost of using this jump is distance + 2 to discourage long distance jumps
+                        });
+                    }
                 }
+
+                // @TODO for each ledge we need to perform an angled drop test to discover possible jump points (add jump point as 2, should only connect to from drop to ledge)
+                if (edges[i].direction !== -1) {
+                    var xCount = edges[i].x + 1, yCount = edges[i].y + 1, t = true, yDistance = yCount + (maxHeight * 2);
+                    while (t) {
+                        for (var yTest = 0, lenY = 3; yTest < lenY; yTest++) {
+                            jp.visual.setTileStatus({ x: xCount, y: yCount + yTest }, 'jump');
+                            // Check below for a blocked tile
+                            if (jp.map.blocked(xCount, yCount + yTest) && !_private.outOfBounds(xCount, yCount + yTest)) {
+                                distance = jp.helper.distanceM(edges[i].x, edges[i].y, xCount, yCount + yTest);
+
+                                // Add connection at ledge
+                                edges[i].connections.push({
+                                    x: xCount,
+                                    y: yCount + yTest,
+                                    jumpDistance: distance,
+                                    cost: distance
+                                });
+
+                                // Add connection at ledge drop point
+                                // @NOTE type must be changed to a jump
+                                var targetTile = jp.map.dataMovePaths[xCount][yCount + yTest];
+                                targetTile.type = 2;
+                                targetTile.connections = [];
+                                targetTile.connections.push({
+                                    x: edges[i].x,
+                                    y: edges[i].y,
+                                    jumpDistance: distance,
+                                    cost: distance
+                                });
+
+                                t = false;
+                                break;
+                            }
+                        }
+
+                        xCount += 1;
+                        yCount += 2;
+                        if (yCount > yDistance) t = false;
+                    }
+                }
+
+                // @TODO for each ledge we need to perform an angled drop test to discover possible jump points (add jump point as 2, should only connect to from drop to ledge)
+                if (edges[i].direction !== 1) {
+                    var xCount = edges[i].x - 1, yCount = edges[i].y + 1, t = true, yDistance = yCount + (maxHeight * 2);
+                    while (t) {
+                        for (var yTest = 0, lenY = 3; yTest < lenY; yTest++) {
+                            jp.visual.setTileStatus({ x: xCount, y: yCount + yTest }, 'jump');
+                            // Check below for a blocked tile
+                            if (jp.map.blocked(xCount, yCount + yTest) && !_private.outOfBounds(xCount, yCount + yTest)) {
+                                console.log(xCount, yCount + yTest);
+
+                                distance = jp.helper.distanceM(edges[i].x, edges[i].y, xCount, yCount + yTest);
+
+                                // Add connection at ledge
+                                edges[i].connections.push({
+                                    x: xCount,
+                                    y: yCount + yTest,
+                                    jumpDistance: distance,
+                                    cost: distance
+                                });
+
+                                // Add connection at ledge drop point
+                                // @NOTE type must be changed to a jump
+                                var targetTile = jp.map.dataMovePaths[xCount][yCount + yTest];
+                                targetTile.type = 2;
+                                targetTile.connections = [];
+                                targetTile.connections.push({
+                                    x: edges[i].x,
+                                    y: edges[i].y,
+                                    jumpDistance: distance,
+                                    cost: distance
+                                });
+
+                                t = false;
+                                break;
+                            }
+                        }
+
+                        xCount -= 1;
+                        yCount += 2;
+                        if (yCount > yDistance) t = false;
+                    }
+                }
+
+                // @TODO Move into measureDepth method, only measures on right currently
+                // for each ledge we must also consider a straight drop down (only valid if there is something to land on) type is = 3
+                var dropX = edges[i].x + 1, dropY = edges[i].y + 1;
+                for (var dropDistance = 0, dropLength = 10; dropDistance < dropLength; dropDistance++) {
+                    if (this.blocked(dropDistance + dropX, dropDistance + dropY) &&
+                        !_private.outOfBounds(dropDistance + dropX, dropDistance + dropY)) {
+                        // @TODO Record connection to fall command on current node
+                        console.log('hit depth tile', dropDistance + dropX, dropDistance + dropY);
+                        break;
+                    }
+                }
+
+                // @TODO Mark tile with visual indicator
+                // @TODO Run measureDepth also on the opposite side for -1 and 0 tiles
             }
 
-                    // Step out in the direction of the ledge, then search voxels with a radius from top to bottom, direction to opposite direction
-                    // (as if a light is being shined)
-                    // If we've found a ledge test with the parabola line jump test
-                    // Success? connect both ledges (verify neither is already connected)
-
-                    // @TODO We need to discover all possible jump connections from a jump point
-                    // use jump radius, go up 1, then follow up till on even y (if above), or over until even x, then go down
-                    // or look at clearance and subtract 1 for
-                    // @TODO for each ledge we need to perform an angled drop test to discover possible jump points (add jump point as 2, should only connect to from drop to ledge)
-                    // @TODO for each ledge we must also consider a straight drop down (only valid if there is something to land on) type is = 3
+            console.log('Create move path runtime', Date.now() - start);
 
             return this;
         },

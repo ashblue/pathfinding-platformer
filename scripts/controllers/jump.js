@@ -7,8 +7,23 @@ $(document).ready(function () {
     jp.jump = {
         jumpFactor: 0.4, // @TODO Jump factor should be set subjective to manhattan distance distance
 
+        isJumpPossible: function (oX, oY, tX, tY) {
+            var jumpPath = this.getJumpPath(oX, oY, tX, tY);
+            console.log(jumpPath);
+            for (var i = 0, len = jumpPath.length; i < len; i++) {
+                if (jp.map.blocked(jumpPath[i].x, jumpPath[i].y)) {
+                    console.log('invalid', jumpPath[i].x, jumpPath[i].y);
+                    return false;
+                }
+            }
+
+            return true;
+        },
+
         /**
          * Returns the curve of a simulated jump, might need to be customized depending upon your tile size
+         * @TODO Parabola jump equation is cool, but not very accurate. Should be swapped out for a physics simulation test at some point
+         * @src http://imada.sdu.dk/~marco/Teaching/AY2012-2013/DM810/Slides/dm810-lec4.pdf
          * @param oX Origin x
          * @param oY Origin y
          * @param tX Target x
@@ -17,9 +32,7 @@ $(document).ready(function () {
         getJumpPath: function (oX, oY, tX, tY) {
             var distX = Math.abs(oX - tX); // Normalize the x length
             var distY = oY - tY;
-//            var jumpFactor = jp.helper.distanceM(oX, oY, tX, tY) * 0.2;
-//            var jumpFactor = 0.7;
-            var jumpFactor = (10 - jp.helper.distanceM(oX, oY, tX, tY)) * 0.08; // @TODO Meh, way of getting jump factor
+            var jumpFactor = (10 - jp.helper.distanceM(oX, oY, tX, tY)) * 0.08;
             if (jumpFactor < 0.3) jumpFactor = 0.3; // Stop factor from going too low
 
             var jumpCurve = this.getJumpCurve(distX, distY, jumpFactor);
@@ -46,7 +59,6 @@ $(document).ready(function () {
 
 
         getJumpPosY: function (jumpCurve, x, jumpFactor) {
-//            return (jumpCurve * jumpCurve) - ((x - jumpCurve) * (x - jumpCurve));
             return (-jumpFactor * x * x) + (jumpCurve * x);
         },
 
@@ -57,7 +69,6 @@ $(document).ready(function () {
          */
         getJumpCurve: function (distX, distY, jumpFactor) {
             return (distY + (jumpFactor * distX * distX)) / distX;
-//            return ((distX * distX) + distY) / (2 * distX);
         }
     };
 });
