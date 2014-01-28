@@ -39,6 +39,11 @@ $(document).ready(function () {
             return this;
         },
 
+        setTile: function (x, y, value) {
+            this.map[y][x] = value;
+            return this;
+        },
+
         getTile: function (x, y) {
             return this.map[y][x];
         }
