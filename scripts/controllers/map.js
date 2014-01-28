@@ -17,6 +17,7 @@ $(document).ready(function () {
         dataMovePaths: null,
 
         setData: function (map) {
+            jp.draw.clearLines();
             this.dataCollision = map;
             var width = this.getWidthInTiles(), height = this.getHeightInTiles();
             jp.clearance.setMap(width, height);

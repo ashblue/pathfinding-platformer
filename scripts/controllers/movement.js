@@ -136,7 +136,7 @@ $(document).ready(function () {
 
                     // @TODO If debug is on draw a line between both points
                     if (this.debug) {
-
+                        jp.draw.setLine(l.x, l.y, ledges[i].x, ledges[i].y, '#0f0');
                     }
                 }
             }

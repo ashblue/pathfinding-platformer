@@ -133,10 +133,26 @@ form {
   }
 }
 
+.line{
+  -webkit-transform-origin: 0 100%;
+  transform-origin: 0 100%;
+  height: 3px; /* Line width of 3 */
+  background: #000; /* Black fill */
+  opacity: 0.5;
+  
+  &:hover {
+    opacity: 1;
+  }
+}
+
 #map-wrapper {
   position: relative;
   padding-top: 20px;
   margin-right: 160px;
+}
+
+#map {
+  position: relative;
 }
 
 .grid-container {
