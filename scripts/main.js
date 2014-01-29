@@ -17,7 +17,7 @@ $(document).ready(function () {
             timeStart = Date.now();
 
             // @TODO If the player is up in the air we are in the middle of a jump, do not find a path during a jump (error prone)
-            var path = jp.pathFinder.findPath(begin.x, begin.y, end.x, end.y, maxSteps);
+            var path = jp.pathFinder.findPath(begin.x + jp.pathFinder.playerSize - 1, begin.y + jp.pathFinder.playerSize - 1, end.x, end.y, maxSteps);
 
             timeEnd = Date.now();
             jp.pathFinder.setVisual();
