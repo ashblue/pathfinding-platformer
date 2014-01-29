@@ -101,7 +101,7 @@ $(document).ready(function () {
             // You must add the starting step
             this.reset()
                 .setMaxSteps(maxSteps)
-                .addOpen(new jp.Step(xC, yC, xT, yT, this.step, false));
+                .addOpen(new jp.Step(xC, yC, xT, yT, this.step, false, 1));
 
             while (this.open.length !== 0) {
                 this.calls += 1;

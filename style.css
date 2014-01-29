@@ -64,7 +64,7 @@ button.active {
     .map .map-tile[data-status="path"] {
       background: #f0f; }
     .map .map-tile[data-status="jump"] {
-      background: #07f; }
+      background: #FDD5B1; }
 
 .cf:before, .cf:after {
   content: " ";
@@ -224,3 +224,6 @@ form input {
 
 .legend .path {
   border-color: #f0f; }
+
+.legend .jump {
+  border-color: #FDD5B1; }

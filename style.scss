@@ -89,7 +89,7 @@ button.active {
     }
     
     &[data-status="jump"] {
-      background: #07f;
+      background: #FDD5B1;
     }
   }
 }
@@ -298,4 +298,8 @@ form {
 
 .legend .path {
     border-color: #f0f;
+}
+
+.legend .jump {
+  border-color: #FDD5B1;
 }

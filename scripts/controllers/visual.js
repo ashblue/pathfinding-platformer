@@ -89,17 +89,10 @@ $(document).ready(function () {
             jp.visual.showPlatformer();
         },
 
-        showJump: function () {
+        toggleJump: function () {
+            jp.visual.clearPath(TILES.jump, true);
+            jp.jump.debug = !jp.jump.debug;
             jp.map.setData(jp.visual.getCollisionMap());
-            jp.visual.clearPath();
-
-            var begin = jp.visual.getBegin();
-            var end = jp.visual.getEnd();
-            var jumpPath = jp.jump.getJumpPath(begin.x, begin.y, end.x, end.y);
-
-            for (var i = 0, len = jumpPath.length; i < len; i++) {
-                jp.visual.setTileStatus(jumpPath[i], 'jump');
-            }
         }
     };
 
@@ -213,7 +206,7 @@ $(document).ready(function () {
             $BTN_END.click(_event.activeEnd);
             $BTN_CLEARANCE.click(_event.toggleClearance);
             $BTN_PLATFORMER.click(_event.togglePlatformer);
-            $BTN_JUMP.click(_event.showJump);
+            $BTN_JUMP.click(_event.toggleJump);
             $BTN_SAVE_MAP.click(this.saveMap.bind(this));
             $BTN_LOAD_MAP.click(this.loadMap.bind(this));
 
@@ -360,7 +353,7 @@ $(document).ready(function () {
                 return;
             }
 
-            $tile.attr('data-status', status).html('');
+            $tile.attr('data-status', status);
 
             // If stats are present set them
             if (tile.f) {
@@ -384,6 +377,8 @@ $(document).ready(function () {
 
         setBegin: function (xTarget, yTarget) {
             var $el = this.getTile(xTarget, yTarget);
+            $(TILES.setClosed + ', ' + TILES.setOpened + ', ' + TILES.path).attr('data-status', 'open');
+            $MAP_TILES.find('.f, .g, .h').detach();
 
             // Verify there is proper clearance around the player before placing
             var playerSize = jp.visual.getPlayerSize(),
@@ -409,6 +404,9 @@ $(document).ready(function () {
         },
 
         setEnd: function (x, y) {
+            $(TILES.setClosed + ', ' + TILES.setOpened + ', ' + TILES.path).attr('data-status', 'open');
+            $MAP_TILES.find('.f, .g, .h').detach();
+
             $MAP.find(TILES.end).attr('data-status', 'open');
             this.getTile(x, y).attr('data-status', 'end');
         },
@@ -427,9 +425,15 @@ $(document).ready(function () {
         },
 
         // Remove opened set, closed set, and path tiles from the map
-        clearPath: function () {
-            $MAP_TILES.html('');
-            $(TILES.setClosed + ', ' + TILES.setOpened + ', ' + TILES.path + ', ' + TILES.jump).attr('data-status', 'open');
+        clearPath: function (clearSyntax, keepStats) {
+            if (!keepStats)
+                $MAP_TILES.find('.f, .g, .h').detach();
+
+            if (!clearSyntax) {
+                $(TILES.setClosed + ', ' + TILES.setOpened + ', ' + TILES.path).attr('data-status', 'open');
+            } else {
+                $(clearSyntax).attr('data-status', 'open');
+            }
             return this;
         }
     };

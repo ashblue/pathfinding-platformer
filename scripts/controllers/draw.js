@@ -50,6 +50,15 @@ $(document).ready(function () {
 
         clearLines: function () {
             $('#map').find('.line').detach();
+            return this;
+        },
+
+        setJumpPath: function (steps) {
+            for (var i = 0; i < steps.length; i++) {
+                jp.visual.setTileStatus({ x: steps[i].x, y: steps[i].y }, 'jump');
+            }
+
+            return this;
         }
     };
 });

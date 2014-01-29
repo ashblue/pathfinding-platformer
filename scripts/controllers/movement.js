@@ -6,7 +6,8 @@ $(document).ready(function () {
     };
 
     /**
-     * Defer debug (such as lines drawn) until after
+     * @TODO Defer debug (such as lines drawn) until after everything has run (perhaps break into a separate file)
+     * @TODO A web worker should probably be used to set the maps (for greatly increased speed)
      * @type {{map: null, debug: boolean, maxHeight: null, connectionLib: null, connectionId: null, setMap: setMap, addTileConnection: addTileConnection, setAngledDrop: setAngledDrop, setLedgeConnections: setLedgeConnections, setAnchor: setAnchor, setConnection: setConnection, getConnection: getConnection, getConnectionId: getConnectionId, getTileMoveType: getTileMoveType, getTile: getTile, setTile: setTile, blocked: blocked, getCost: getCost, getNeighbors: getNeighbors}}
      */
     jp.movement = {
@@ -125,7 +126,6 @@ $(document).ready(function () {
 
                     // Check below to see if we hit a tile
                     if (jp.map.blocked(x, y + 1) && !jp.map.outOfBounds(x, y + 1)) {
-//                    if (jp.map.blocked(x, y + 1)) {
                         distance = jp.helper.distanceM(xO, yO, x, y);
                         originTile = this.getTile(xO, yO);
 
@@ -221,9 +221,10 @@ $(document).ready(function () {
                     tile.x = x;
                     tile.y = y + i;
                     tile.id = this.getConnectionId();
+                    tile.type = 3;
                     this.setConnection(tile);
 
-                    this.addTileConnection(this.getTile(x - direction, y), tile.id, i);
+                    this.addTileConnection(this.getTile(x - direction, y), tile.id);
 
                     break;
                 }
@@ -320,6 +321,31 @@ $(document).ready(function () {
         getCost: function (xC, yC, xT, yT) {
             // Calculate manhattan distance and weight
             return jp.helper.distanceM(xC, yC, xT, yT) + this.getTile(xT, yT).cost;
+        },
+
+        /**
+         * Figures out the relationship between two tiles and returns the movement type
+         * @param xC
+         * @param yC
+         * @param xT
+         * @param yT
+         * @returns {number} 1 = move, 2 = jump, 3 = fall
+         */
+        getType: function (xC, yC, xT, yT) {
+            var type;
+
+            // If one x away its a move
+            if (Math.abs(xC - xT) === 1 && Math.abs(yC - yT)) {
+                type = 1;
+            // otherwise fall or jump
+            } else if (this.getTile(xT, yT).type === 2) {
+                type = 2;
+            // Fall
+            } else {
+                type = 3;
+            }
+
+            return type;
         },
 
         // @TODO Connections must be a jump or fall (2, 3), everything else will always be a walk (1)

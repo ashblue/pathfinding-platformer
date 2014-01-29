@@ -5,6 +5,7 @@ var jp = jp || {};
 
 $(document).ready(function () {
     jp.jump = {
+        debug: false,
         jumpFactor: 0.4, // @TODO Jump factor should be set subjective to manhattan distance distance
 
         isJumpPossible: function (oX, oY, tX, tY) {
@@ -51,6 +52,10 @@ $(document).ready(function () {
                     y = this.getJumpPosY(jumpCurve, x, jumpFactor);
                     stack.push({ x: Math.round(x + oX), y: Math.round(oY - y) });
                 }
+            }
+
+            if (this.debug) {
+                jp.draw.setJumpPath(stack);
             }
 
             return stack;

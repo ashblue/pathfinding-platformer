@@ -9,7 +9,6 @@ $(document).ready(function () {
      * @param yT {number}
      * @param totalSteps {number} Current number of steps so far
      * @param parentStep {Step|boolean} Link to the previous step
-     * (water, crumbling ground, hazards)
      * @constructor
      */
     jp.Step = function(xC, yC, xT, yT, totalSteps, parentStep) {
