@@ -4,9 +4,44 @@
 var jp = jp || {};
 
 $(document).ready(function () {
+    var _private = {
+        getVelocity: function (vel, accel, friction, max) {
+            if( accel ) {
+                return ( vel + accel * ig.system.tick ).limit( -max, max );
+            }
+            else if( friction ) {
+                var delta = friction * ig.system.tick;
+
+                if( vel - delta > 0) {
+                    return vel - delta;
+                }
+                else if( vel + delta < 0 ) {
+                    return vel + delta;
+                }
+                else {
+                    return 0;
+                }
+            }
+            return vel.limit( -max, max );
+        }
+    };
+
     jp.jump = {
         debug: false,
         jumpFactor: 0.4, // @TODO Jump factor should be set subjective to manhattan distance distance
+
+        simulateJump: function (velX, velY, maxVelX, maxVelY, frictionX, frictionY, gravity, delta) {
+            // this.vel.y += ig.game.gravity * ig.system.tick * this.gravityFactor;
+            velY += gravity * delta * gravity;
+
+//            this.vel.x = this.getNewVelocity( this.vel.x, this.accel.x, this.friction.x, this.maxVel.x );
+//            this.vel.y = this.getNewVelocity( this.vel.y, this.accel.y, this.friction.y, this.maxVel.y );
+            velX = _private.getVelocity(velX, velY, frictionX, delta);
+            velY = _private.getVelocity(velY, v)
+
+//            var mx = this.vel.x * ig.system.tick;
+//            var my = this.vel.y * ig.system.tick;
+        },
 
         isJumpPossible: function (oX, oY, tX, tY) {
             var jumpPath = this.getJumpPath(oX, oY, tX, tY);
@@ -41,16 +76,16 @@ $(document).ready(function () {
 
             // Left to right
             if (oX > tX) {
-                for (x = 0, len = distX; x + tX < oX; x += 0.5) { // We search at 0.5 to increase our chances of finding a blocked tile
+                for (x = 0, len = distX; x + tX < oX; x += 1) { // We search at 0.5 to increase our chances of finding a blocked tile
                     y = this.getJumpPosY(jumpCurve, x, jumpFactor);
-                    stack.push({ x: Math.round(oX - x), y: Math.round(oY - y) });
+                    stack.push({ x: Math.ceil(oX - x), y: Math.ceil(oY - y) });
                 }
 
             // Right to left
             } else {
-                for (x = 0, len = distX; x + oX < tX; x += 0.5) {
+                for (x = 0, len = distX; x + oX < tX; x += 1) {
                     y = this.getJumpPosY(jumpCurve, x, jumpFactor);
-                    stack.push({ x: Math.round(x + oX), y: Math.round(oY - y) });
+                    stack.push({ x: Math.ceil(x + oX), y: Math.ceil(oY - y) });
                 }
             }
 

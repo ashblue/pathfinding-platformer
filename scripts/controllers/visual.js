@@ -50,6 +50,8 @@ $(document).ready(function () {
                 $(this).attr('data-status', 'closed');
             }
 
+            $MAP.find(TILES.jump).attr('data-status', 'open');
+
             jp.visual.showClearance()
                 .showPlatformer();
         },

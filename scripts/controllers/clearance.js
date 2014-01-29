@@ -49,14 +49,14 @@ $(document).ready(function () {
          * @returns {number} Verical clearance value
          */
         getFlatValue: function (x, y, maxHeight) {
-            for (var yC = y - 1, clearance, clearancePrev = 0; yC >= 0; yC--) {
+            for (var yC = y - 1, clearance, clearancePrev = 1; yC >= 0; yC--) {
                 clearance = this.getTile(x, yC);
 
                 // Double check not blocked or at maxHeight
-                if (jp.map.blocked(x, yC) || clearance >= maxHeight) return clearance;
+                if (clearance >= maxHeight) return clearance;
 
                 // If the value is going down return the previous value
-                if (clearancePrev >= clearance) return clearancePrev;
+                if (jp.map.blocked(x, yC) || clearancePrev >= clearance) return clearancePrev;
 
                 clearancePrev = clearance;
             }
