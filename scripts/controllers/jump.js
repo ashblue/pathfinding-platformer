@@ -4,60 +4,43 @@
 var jp = jp || {};
 
 $(document).ready(function () {
-    var _private = {
-        getVelocity: function (vel, accel, friction, max) {
-            if( accel ) {
-                return ( vel + accel * ig.system.tick ).limit( -max, max );
-            }
-            else if( friction ) {
-                var delta = friction * ig.system.tick;
-
-                if( vel - delta > 0) {
-                    return vel - delta;
-                }
-                else if( vel + delta < 0 ) {
-                    return vel + delta;
-                }
-                else {
-                    return 0;
-                }
-            }
-            return vel.limit( -max, max );
-        }
-    };
-
     jp.jump = {
         debug: false,
         jumpFactor: 0.4, // @TODO Jump factor should be set subjective to manhattan distance distance
 
-        simulateJump: function (velX, velY, maxVelX, maxVelY, frictionX, frictionY, gravity, delta) {
-            // this.vel.y += ig.game.gravity * ig.system.tick * this.gravityFactor;
-            velY += gravity * delta * gravity;
-
-//            this.vel.x = this.getNewVelocity( this.vel.x, this.accel.x, this.friction.x, this.maxVel.x );
-//            this.vel.y = this.getNewVelocity( this.vel.y, this.accel.y, this.friction.y, this.maxVel.y );
-            velX = _private.getVelocity(velX, velY, frictionX, delta);
-            velY = _private.getVelocity(velY, v)
-
-//            var mx = this.vel.x * ig.system.tick;
-//            var my = this.vel.y * ig.system.tick;
-        },
-
         isJumpPossible: function (oX, oY, tX, tY) {
-            var jumpPath = this.getJumpPath(oX, oY, tX, tY);
+            var jumpPath = this.getJumpPath(oX, oY, tX, tY), offset, padding;
             for (var i = 0, len = jumpPath.length; i < len; i++) {
-                if (jp.map.blocked(jumpPath[i].x, jumpPath[i].y)) {
-                    console.log('invalid', jumpPath[i].x, jumpPath[i].y);
-                    return false;
+                // Pad all values
+                // Ignore origin
+
+                // Loop around the parabola point to gurantee properly padded space
+                if (jumpPath[i].x !== oX && jumpPath[i].x !== tX) {
+                    offset = -jp.pathFinder.playerSize;
+                } else {
+                    offset = 0;
+                }
+
+                for (padding = jp.pathFinder.playerSize; offset <= padding; offset++) {
+                    if (jp.map.blocked(jumpPath[i].x, jumpPath[i].y - offset)) {
+                        return false;
+                    }
+
+                    if (this.debug) {
+                        jp.draw.setJump(jumpPath[i].x, jumpPath[i].y - offset);
+                    }
                 }
             }
 
             return true;
         },
 
+        isSameTile: function (x1, y1, x2, y2) {
+            return x1 === x2 && y1 === y2;
+        },
+
         /**
          * Returns the curve of a simulated jump, might need to be customized depending upon your tile size
-         * @TODO Parabola jump equation is cool, but not very accurate. Should be swapped out for a physics simulation test at some point
          * @src http://imada.sdu.dk/~marco/Teaching/AY2012-2013/DM810/Slides/dm810-lec4.pdf
          * @param oX Origin x
          * @param oY Origin y
@@ -87,10 +70,6 @@ $(document).ready(function () {
                     y = this.getJumpPosY(jumpCurve, x, jumpFactor);
                     stack.push({ x: Math.ceil(x + oX), y: Math.ceil(oY - y) });
                 }
-            }
-
-            if (this.debug) {
-                jp.draw.setJumpPath(stack);
             }
 
             return stack;

@@ -53,10 +53,8 @@ $(document).ready(function () {
             return this;
         },
 
-        setJumpPath: function (steps) {
-            for (var i = 0; i < steps.length; i++) {
-                jp.visual.setTileStatus({ x: steps[i].x, y: steps[i].y }, 'jump');
-            }
+        setJump: function (x, y) {
+            jp.visual.setTileStatus({ x: x, y: y }, 'jump');
 
             return this;
         }

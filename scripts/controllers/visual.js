@@ -51,6 +51,7 @@ $(document).ready(function () {
             }
 
             $MAP.find(TILES.jump).attr('data-status', 'open');
+            jp.map.setData(jp.visual.getCollisionMap());
 
             jp.visual.showClearance()
                 .showPlatformer();
@@ -217,8 +218,6 @@ $(document).ready(function () {
 
         showClearance: function () {
             if (jp.clearance.debug) {
-                jp.map.setData(jp.visual.getCollisionMap());
-
                 var width = jp.map.getWidthInTiles();
                 var height = jp.map.getHeightInTiles();
                 var x, y;
@@ -237,8 +236,6 @@ $(document).ready(function () {
 
         showPlatformer: function () {
             if (jp.movement.debug) {
-                jp.map.setData(jp.visual.getCollisionMap());
-
                 var width = jp.map.getWidthInTiles();
                 var height = jp.map.getHeightInTiles();
                 var x, y, output, tile;
