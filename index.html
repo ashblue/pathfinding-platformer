@@ -61,27 +61,16 @@
                     <input id="input-move-clearance" type="number" value="3" />
                 </li>
                 <li>
-                    <label>Player Size</label>
+                    <label>Player Size <small>Player must be set after changing this value to take effect</small></label>
                     <input id="input-player" type="number" value="1" />
                 </li>
                 <li>
-                    <label>Max Steps</label>
+                    <label>Max Steps <small>Maximum number of steps taken for finding a path</small></label>
                     <input id="input-max-steps" type="number" value="100" />
                 </li>
                 <li>
                     <label>Max Jump Distance <small>How far can a player jump?</small></label>
                     <input id="input-max-jump" type="number" value="5" />
-                </li>
-                <li>
-                    <label>Units Per Voxel (pixels)</label>
-                    <input id="input-voxel" type="number" value="1" />
-                </li>
-                <li>
-                    <label>Physics</label>
-                    Accel <input id="input-accel-x" type="number" value="1" /> <input type="number" value="1" id="input-accel-y" />
-                    Velocity <input type="number" value="1" id="input-vel-x" /> <input type="number" value="1" id="input-vel-y" />
-                    Friction <input type="number" value="1" id="input-friction-x" /> <input type="number" value="1" id="input-friction-y" />
-                    MaxVel <input type="number" value="1" id="input-maxvel-x" /> <input type="number" value="1" id="input-maxvel-y" />
                 </li>
             </ul>
         </form>
@@ -122,7 +111,7 @@
         <ul class="break">
             <li>Player will find the shortest path to the end</li>
             <li>Player size will limit potential paths</li>
-            <li>Player physics will be used to pre-calculate potential jumps</li>
+            <li>A simple parabola will be used to test jump paths instead of expensive physics</li>
             <li>Jump paths must be verified as clear</li>
         </ul>
 

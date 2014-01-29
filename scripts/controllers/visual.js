@@ -51,10 +51,11 @@ $(document).ready(function () {
             }
 
             $MAP.find(TILES.jump).attr('data-status', 'open');
-            jp.map.setData(jp.visual.getCollisionMap());
 
             jp.visual.showClearance()
                 .showPlatformer();
+
+            jp.map.setData(jp.visual.getCollisionMap());
         },
 
         activeStart: function () {

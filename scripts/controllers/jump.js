@@ -8,6 +8,15 @@ $(document).ready(function () {
         debug: false,
         jumpFactor: 0.4, // @TODO Jump factor should be set subjective to manhattan distance distance
 
+        /**
+         * @TODO Currently doesn't take into account jump clearance when searching tiles, may or may not be important
+         * @TODO Current size could be too wide, see how well this does first before changing
+         * @param oX
+         * @param oY
+         * @param tX
+         * @param tY
+         * @returns {boolean}
+         */
         isJumpPossible: function (oX, oY, tX, tY) {
             var jumpPath = this.getJumpPath(oX, oY, tX, tY), offset, padding;
             for (var i = 0, len = jumpPath.length; i < len; i++) {
