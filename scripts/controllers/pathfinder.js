@@ -80,8 +80,7 @@ $(document).ready(function () {
         },
 
         /**
-         * @TODO Pathfinding with connection ids might cause some overlap in pathfinding logic, integrate the ability
-         * to see a live demo of the pathfinding (next / prev step, animated show). Easiest way to do this would probably
+         * @TODO see a live demo of the pathfinding (next / prev step, animated show). Easiest way to do this would probably
          * be recording every single tile step along the way and passing back an array. Array could then be traversed freely
          * to discover bugs and better understand wtf is going on.
          * @TODO Pathfinder should probably record the movement type (walk, jump, fall)
@@ -90,7 +89,7 @@ $(document).ready(function () {
          * @param xT {number} X target
          * @param yT {number} Y target
          * @param maxSteps {number} Maximum number of step attempts allowed
-         * @returns {*}
+         * @returns {[]}
          */
         findPath: function (xC, yC, xT, yT, maxSteps) {
             var current, // Current best open tile
@@ -153,7 +152,7 @@ $(document).ready(function () {
                 }
             }
 
-            return this.getBestGuess(xC, yC);
+            return [];
         },
 
         getBestClosed: function () {

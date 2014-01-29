@@ -2,7 +2,6 @@
  * Used for drawing additional data on top of the graph. Think of them as out of the box debugging tools.
  */
 
-// @TODO Break up clearance code into easier to digest API commands
 var jp = jp || {};
 
 $(document).ready(function () {

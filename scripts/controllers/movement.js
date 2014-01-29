@@ -1,4 +1,3 @@
-// @TODO Connections are missing a jump cost, these should be normalized into a method addTileConnection(id, jumpCost);
 var jp = jp || {};
 
 $(document).ready(function () {
@@ -130,7 +129,7 @@ $(document).ready(function () {
                         distance = jp.helper.distanceM(xO, yO, x, y);
                         originTile = this.getTile(xO, yO);
 
-                        // @TODO Normalize this into a method and use throughout this file
+                        // @TODO Normalize adding tiles into a method and use throughout this file
                         targetTile = this.getTile(x, y);
                         targetTile.type = 2;
                         targetTile.x = x;
