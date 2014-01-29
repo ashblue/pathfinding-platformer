@@ -15,7 +15,10 @@ $(document).ready(function () {
             jp.pathFinder.playerSize = jp.visual.getPlayerSize();
             jp.map.setData(jp.visual.getCollisionMap());
             timeStart = Date.now();
+
+            // @TODO If the player is up in the air we are in the middle of a jump, do not find a path during a jump (error prone)
             var path = jp.pathFinder.findPath(begin.x, begin.y, end.x, end.y, maxSteps);
+
             timeEnd = Date.now();
             jp.pathFinder.setVisual();
             jp.visual.setTileGroup(path, 'path');

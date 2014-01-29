@@ -1,6 +1,5 @@
 var jp = jp || {};
 
-// @TODO A lot of these methods and variables should be private
 $(document).ready(function () {
     // Pathfinder API - Returns a path to the target
     // Good place to add details such as flying, swimming, ect.
@@ -80,9 +79,12 @@ $(document).ready(function () {
             return this;
         },
 
-        // @TODO Integrate maximum step limiter
         /**
-         *
+         * @TODO Pathfinding with connection ids might cause some overlap in pathfinding logic, integrate the ability
+         * to see a live demo of the pathfinding (next / prev step, animated show). Easiest way to do this would probably
+         * be recording every single tile step along the way and passing back an array. Array could then be traversed freely
+         * to discover bugs and better understand wtf is going on.
+         * @TODO Pathfinder should probably record the movement type (walk, jump, fall)
          * @param xC {number} X origin
          * @param yC {number} Y origin
          * @param xT {number} X target
@@ -112,6 +114,8 @@ $(document).ready(function () {
                 // Check if goal has been discovered to build a path
                 this.xGoal = xT - current.x;
                 this.yGoal = yT - current.y;
+
+                // A little extra logic for players larger than 1 voxel
                 if (this.xGoal < this.playerSize && this.xGoal >= 0 && this.yGoal < this.playerSize && this.yGoal >= 0) {
                     return this.buildPath(current, []);
                 }
@@ -121,10 +125,10 @@ $(document).ready(function () {
                     .addClosed(current);
 
                 // Get neighbors from the map and check them
-                neighbors = jp.map.getNeighbors(current.x, current.y);
+                neighbors = jp.movement.getNeighbors(current.x, current.y);
                 for (i = 0; i < neighbors.length; i++) {
                     // Get current step and distance from current to neighbor
-                    stepCost = current.g + jp.map.getCost(current.x, current.y, neighbors[i].x, neighbors[i].y);
+                    stepCost = current.g + jp.movement.getCost(current.x, current.y, neighbors[i].x, neighbors[i].y);
 
                     // Check for the neighbor in the closed set
                     // then see if its cost is >= the stepCost, if so skip current neighbor
@@ -137,7 +141,8 @@ $(document).ready(function () {
                     if (!neighborRecord || stepCost < neighborRecord.g) {
                         if (!neighborRecord) {
                             // Reject the tile immediately if the player cannot fit into it
-                            if (this.playerSize > jp.clearance.getTile(neighbors[i].x, neighbors[i].y)) continue;
+                            // @TODO Larger movement sizes don't work because the initial player tile square is the top left, it must be the bottom left instead
+                            if (this.playerSize > jp.movement.getClearance(neighbors[i].x, neighbors[i].y)) continue;
                             this.addOpen(new jp.Step(neighbors[i].x, neighbors[i].y, xT, yT, stepCost, current));
                         } else {
                             neighborRecord.parent = current;

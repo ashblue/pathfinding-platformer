@@ -6,6 +6,10 @@ $(document).ready(function () {
 
     };
 
+    /**
+     * Defer debug (such as lines drawn) until after
+     * @type {{map: null, debug: boolean, maxHeight: null, connectionLib: null, connectionId: null, setMap: setMap, addTileConnection: addTileConnection, setAngledDrop: setAngledDrop, setLedgeConnections: setLedgeConnections, setAnchor: setAnchor, setConnection: setConnection, getConnection: getConnection, getConnectionId: getConnectionId, getTileMoveType: getTileMoveType, getTile: getTile, setTile: setTile, blocked: blocked, getCost: getCost, getNeighbors: getNeighbors}}
+     */
     jp.movement = {
         map: null, // An array of all existing movement tiles
         debug: false, // Real time updates for movement tiles
@@ -34,7 +38,10 @@ $(document).ready(function () {
             for (y = 0; y < height; y++) {
                 this.map.push([]);
                 for (x = 0; x < width; x++) {
-                    tile = {};
+                    tile = {
+                        x: x,
+                        y: y
+                    };
 
                     // Set movement tiles depending upon the discovered type
                     switch (this.getTileMoveType(x, y)) {
@@ -48,20 +55,20 @@ $(document).ready(function () {
                             break;
                         case 'ledge-right':
                             tile.type = 2; // Indicates a potential jump pad
-                            tile.cost = 1;
-                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight); // Maximum clearance support
+                            tile.cost = 2;
+                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight);
                             tile.direction = 1; // Right facing
                             break;
                         case 'ledge-left':
                             tile.type = 2;
-                            tile.cost = 1;
-                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight); // Maximum clearance support
+                            tile.cost = 2;
+                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight);
                             tile.direction = -1; // Left facing
                             break;
                         case 'ledge-both':
                             tile.type = 2;
-                            tile.cost = 1;
-                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight); // Maximum clearance support
+                            tile.cost = 2;
+                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight);
                             tile.direction = 0; // Facing both directions
                             break;
                         default:
@@ -72,8 +79,6 @@ $(document).ready(function () {
                     if (tile.type === 2) {
                         tile.id = this.getConnectionId();
                         tile.connections = [];
-                        tile.x = x; // We have to record the x and y value for later when we loop through ledges, nasty but necessary
-                        tile.y = y;
                         this.setConnection(tile);
                         ledges.push(tile);
                     }
@@ -105,11 +110,8 @@ $(document).ready(function () {
             return this;
         },
 
-        addTileConnection: function (tile, id, cost) {
-            tile.connections.push({
-                id: id,
-                cost: cost
-            });
+        addTileConnection: function (tile, id) {
+            tile.connections.push(id);
 
             return this;
         },
@@ -220,6 +222,7 @@ $(document).ready(function () {
                     tile.x = x;
                     tile.y = y + i;
                     tile.id = this.getConnectionId();
+                    this.setConnection(tile);
 
                     this.addTileConnection(this.getTile(x - direction, y), tile.id, i);
 
@@ -237,6 +240,10 @@ $(document).ready(function () {
         setConnection: function (tile) {
             this.connectionLib[tile.id] = tile;
             return this;
+        },
+
+        getConnection: function (id) {
+            return this.connectionLib[id];
         },
 
         getConnectionId: function () {
@@ -292,6 +299,49 @@ $(document).ready(function () {
         setTile: function (x, y, value) {
             this.map[y][x] = value;
             return this;
+        },
+
+        blocked: function (x, y) {
+            if (jp.map.outOfBounds(x, y) || this.map[y][x].type === 0) {
+                return true;
+            }
+
+            return false;
+        },
+
+        /**
+         * Finds the flattened clearance value
+         * @param x
+         * @param y
+         */
+        getClearance: function (x, y) {
+            return this.getTile(x, y).clearance | 0;
+        },
+
+        getCost: function (xC, yC, xT, yT) {
+            // Calculate manhattan distance and weight
+            return jp.helper.distanceM(xC, yC, xT, yT) + this.getTile(xT, yT).cost;
+        },
+
+        // @TODO Connections must be a jump or fall (2, 3), everything else will always be a walk (1)
+        // currently these do not always return this way. So the command list is out of wack for characters
+        // to follow
+        getNeighbors: function (x, y) {
+            var neighbors = [],
+                current = this.getTile(x, y);
+
+            // Check sides
+            if (!this.blocked(x + 1, y)) neighbors.push(this.getTile(x + 1, y)); // Right
+            if (!this.blocked(x - 1, y)) neighbors.push(this.getTile(x - 1, y)); // Left
+
+            // If we have connections return all of them
+            if (current.connections) {
+                for (var i = 0, len = current.connections.length; i < len; i++) {
+                    neighbors.push(this.getConnection(current.connections[i]));
+                }
+            }
+
+            return neighbors;
         }
     };
 });
