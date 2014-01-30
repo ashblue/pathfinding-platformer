@@ -1,21 +1,43 @@
 var jp = jp || {};
 
 $(document).ready(function () {
-    var _private = {
-
-    };
-
     /**
      * @TODO Defer debug (such as lines drawn) until after everything has run (perhaps break into a separate file)
      * @TODO A web worker should probably be used to set the maps (for greatly increased speed)
      * @type {{map: null, debug: boolean, maxHeight: null, connectionLib: null, connectionId: null, setMap: setMap, addTileConnection: addTileConnection, setAngledDrop: setAngledDrop, setLedgeConnections: setLedgeConnections, setAnchor: setAnchor, setConnection: setConnection, getConnection: getConnection, getConnectionId: getConnectionId, getTileMoveType: getTileMoveType, getTile: getTile, setTile: setTile, blocked: blocked, getCost: getCost, getNeighbors: getNeighbors}}
      */
-    jp.movement = {
+    window.MapMovement = Class.extend({
         map: null, // An array of all existing movement tiles
         debug: false, // Real time updates for movement tiles
         maxHeight: null, // Maximum supported height we'll use for clearance to cut down on search time
         connectionLib: null, // Id references for our edges in connections
         connectionId: null,
+        collision: null,
+        clearance: null,
+
+        init: function (width, height, maxHeight, maxJump, collision, clearance) {
+            this.setCollision(collision)
+                .setClearance(clearance)
+                .setMap(width, height, maxHeight, maxJump);
+
+            return this;
+        },
+
+        /**
+         * @TODO Must be set to null for proper memory clearance
+         */
+        setCollision: function (collision) {
+            this.collision = collision;
+            return this;
+        },
+
+        /**
+         * @TODO Must be set to null for proper memory clearance
+         */
+        setClearance: function (clearance) {
+            this.clearance = clearance;
+            return this;
+        },
 
         /**
          * Sets clearance values, reliant on the Map API to have collision data set
@@ -26,7 +48,7 @@ $(document).ready(function () {
          * jump platforms together
          */
         setMap: function (width, height, maxHeight, maxJump) {
-            var start = Date.now(); // Used to record the total run time
+            if (this.debug === true) var start = Date.now(); // Used to record the total run time
             var ledges = []; // A collection
             var x, y, tile, ledge;
             this.maxHeight = maxHeight;
@@ -51,24 +73,24 @@ $(document).ready(function () {
                         case 'walkway':
                             tile.type = 1;
                             tile.cost = 1;
-                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight); // Maximum clearance support
+                            tile.clearance = this.clearance.getFlatValue(x, y, this.maxHeight); // Maximum clearance support
                             break;
                         case 'ledge-right':
                             tile.type = 2; // Indicates a potential jump pad
                             tile.cost = 2;
-                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight);
+                            tile.clearance = this.clearance.getFlatValue(x, y, this.maxHeight);
                             tile.direction = 1; // Right facing
                             break;
                         case 'ledge-left':
                             tile.type = 2;
                             tile.cost = 2;
-                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight);
+                            tile.clearance = this.clearance.getFlatValue(x, y, this.maxHeight);
                             tile.direction = -1; // Left facing
                             break;
                         case 'ledge-both':
                             tile.type = 2;
                             tile.cost = 2;
-                            tile.clearance = jp.clearance.getFlatValue(x, y, this.maxHeight);
+                            tile.clearance = this.clearance.getFlatValue(x, y, this.maxHeight);
                             tile.direction = 0; // Facing both directions
                             break;
                         default:
@@ -90,22 +112,27 @@ $(document).ready(function () {
             // Loop through all of our gathered ledges
             while (ledges.length > 0) {
                 ledge = ledges.pop();
-                this.setLedgeConnections(ledge, ledges, maxJump);
 
                 // Make sure ledges with two sides set two angled drops
                 if (ledge.direction !== 0) {
                     this.setAngledDrop(ledge.x, ledge.y, ledge.direction, maxJump * 3);
                     this.setAnchor(ledge.x, ledge.y, ledge.direction, 10);
+                    this.setLedgeConnections(ledge, ledges, maxJump, ledge.direction);
                 } else {
                     this.setAngledDrop(ledge.x, ledge.y, -1, maxJump * 3);
                     this.setAngledDrop(ledge.x, ledge.y, 1, maxJump * 3);
                     this.setAnchor(ledge.x, ledge.y, 1, 10);
                     this.setAnchor(ledge.x, ledge.y, -1, 10);
+                    this.setLedgeConnections(ledge, ledges, maxJump, -1);
+                    this.setLedgeConnections(ledge, ledges, maxJump, 1);
                 }
 
             }
 
-            if (this.debug) console.log('Movement pre-cache time', Date.now() - start, 'ms');
+            if (this.debug === true) {
+                console.log('Movement pre-cache time', Date.now() - start, 'ms');
+                jp.debug.updateMapMovement();
+            }
 
             return this;
         },
@@ -125,7 +152,7 @@ $(document).ready(function () {
                 for (i = 0, len = 2; i < len; i++, y++) {
 
                     // Check below to see if we hit a tile
-                    if (jp.map.blocked(x, y + 1) && !jp.map.outOfBounds(x, y + 1)) {
+                    if (this.collision.blocked(x, y + 1) && !this.collision.outOfBounds(x, y + 1)) {
                         distance = jp.helper.distanceM(xO, yO, x, y);
                         originTile = this.getTile(xO, yO);
 
@@ -145,13 +172,13 @@ $(document).ready(function () {
                         this.addTileConnection(originTile, targetTile.id, distance)
                             .addTileConnection(targetTile, originTile.id, distance);
 
-                        if (this.debug) jp.draw.setLine(xO, yO, x, y, '#00f');
+                        if (this.debug) jp.debug.setLine(xO, yO, x, y, '#00f');
 
                         return this;
                     }
 
-                    if (y > yO + maxDepth || jp.map.outOfBounds(x, y + 1)) {
-                        if (this.debug) jp.draw.setLine(xO, yO, x, y, 'rgba(0, 0, 255, 0.4)');
+                    if (y > yO + maxDepth || this.collision.outOfBounds(x + direction, y + 1)) {
+                        if (this.debug) jp.debug.setLine(xO, yO, x, y, 'rgba(0, 0, 255, 0.4)');
                         return this;
                     }
                 }
@@ -159,7 +186,7 @@ $(document).ready(function () {
                 x += direction;
             }
 
-            if (this.debug) jp.draw.setLine(xO, yO, x, y, 'rgba(0, 0, 255, 0.4)');
+            if (this.debug) jp.debug.setLine(xO, yO, x, y, 'rgba(0, 0, 255, 0.4)');
 
             return this;
         },
@@ -170,20 +197,17 @@ $(document).ready(function () {
          * @param ledges {array|object} An array of ledge objects
          * @param maxJump {number} Maximum jump we'll look for (determines search distance on ledges)
          */
-        setLedgeConnections: function (l, ledges, maxJump) {
+        setLedgeConnections: function (l, ledges, maxJump, direction) {
             var startX, endX, startY, endY, distance;
 
             // We need to pre-cache a search area to look
             // Determine x direction to look in
-            if (l.direction === 1) {
+            if (direction === 1) {
                 startX = l.x;
                 endX = l.x + maxJump + 1; // Fix max jumps, computers start counting from 0
-            } else if (l.direction === -1) {
-                startX = l.x - maxJump - 1;
-                endX = l.x;
             } else {
                 startX = l.x - maxJump - 1;
-                endX = l.x + maxJump + 1;
+                endX = l.x;
             }
 
             // Determine y direction to look
@@ -194,7 +218,7 @@ $(document).ready(function () {
                 if (l.x !== ledges[i].x && // Skip same x index
                     (l.direction !== ledges[i].direction || ledges[i].direction === 0) && // Do the directions align?
                     ledges[i].x > startX && ledges[i].x < endX && ledges[i].y > startY && ledges[i].y < endY && // Inside search area?
-                    jp.jump.isJumpPossible(l.x, l.y, ledges[i].x, ledges[i].y)) {
+                    jp.jump.isJumpPossible(l.x, l.y, ledges[i].x, ledges[i].y, this.collision, 1)) { // @TODO isJumpPossible should get a proper jump value from the pathfinder
 
                     // We have a positive, link both
                     distance = jp.helper.distanceM(l.x, l.y, ledges[i].x, ledges[i].y);
@@ -203,7 +227,7 @@ $(document).ready(function () {
                     ledges[i].connections.push(l.id);
 
                     // Visually connect ledges
-                    if (this.debug) jp.draw.setLine(l.x, l.y, ledges[i].x, ledges[i].y, '#0f0');
+                    if (this.debug) jp.debug.setLine(l.x, l.y, ledges[i].x, ledges[i].y, '#0f0');
                 }
             }
 
@@ -216,7 +240,7 @@ $(document).ready(function () {
         setAnchor: function (x, y, direction, maxDepth) {
             x += direction;
             for (var i = 0; i < maxDepth; i++) {
-                if (jp.map.blocked(x, y + i + 1) && !jp.map.outOfBounds(x, y + i + 1)) {
+                if (this.collision.blocked(x, y + i + 1) && !this.collision.outOfBounds(x, y + i + 1)) {
                     var tile = this.getTile(x, y + i);
                     tile.x = x;
                     tile.y = y + i;
@@ -229,10 +253,10 @@ $(document).ready(function () {
                     break;
                 }
 
-                if (jp.map.outOfBounds(x, y + i + 1)) break;
+                if (this.collision.outOfBounds(x, y + i + 1)) break;
             }
 
-            if (this.debug) jp.draw.setLine(x, y, x, y + i, 'yellow');
+            if (this.debug) jp.debug.setLine(x, y, x, y + i, 'yellow');
 
             return this;
         },
@@ -259,18 +283,18 @@ $(document).ready(function () {
             var type;
 
             // Check if the tile not blocked, has a standing tile below, and not out of bounds
-            if (!jp.map.blocked(x, y) && jp.map.blocked(x, y + 1) && !jp.map.outOfBounds(x, y + 1)) {
+            if (!this.collision.blocked(x, y) && this.collision.blocked(x, y + 1) && !this.collision.outOfBounds(x, y + 1)) {
 
                 // Walkway check
-                if (jp.map.blocked(x + 1, y + 1) && jp.map.blocked(x - 1, y + 1)) {
+                if (this.collision.blocked(x + 1, y + 1) && this.collision.blocked(x - 1, y + 1)) {
                     type = 'walkway';
 
                 // Ledge facing right
-                } else if (jp.map.blocked(x - 1, y + 1)) {
+                } else if (this.collision.blocked(x - 1, y + 1)) {
                     type = 'ledge-right';
 
                 // Ledge facing left
-                } else if (jp.map.blocked(x + 1, y + 1)) {
+                } else if (this.collision.blocked(x + 1, y + 1)) {
                     type = 'ledge-left';
 
                 // Ledge empty on both sides
@@ -302,7 +326,7 @@ $(document).ready(function () {
         },
 
         blocked: function (x, y) {
-            if (jp.map.outOfBounds(x, y) || this.map[y][x].type === 0) {
+            if (this.collision.outOfBounds(x, y) || this.map[y][x].type === 0) {
                 return true;
             }
 
@@ -368,5 +392,5 @@ $(document).ready(function () {
 
             return neighbors;
         }
-    };
+    });
 });

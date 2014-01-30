@@ -30,8 +30,25 @@ $(document).ready(function () {
 
     var main = {
         init: function () {
-            jp.visual.init();
+            jp.visual.createMap('map', 18, 12);
+            jp.visual.bind();
+
+            // @TODO An encapsulating map class might be useful to better perform this
+            jp.map = new MapCollision(jp.visual.getCollisionMap());
+            var width = jp.map.getWidthInTiles(), height = jp.map.getHeightInTiles();
+            var clearance = new MapClearance(width, height, jp.map);
+            var movement = new MapMovement(width, height, parseInt($('#input-move-clearance').val(), 10), parseInt($('#input-max-jump').val(), 10), jp.map, clearance);
+            jp.map.setClearance(clearance)
+                .setMovement(movement);
+
+            jp.visual.collision = jp.map;
+            jp.visual.clearance = clearance;
+            jp.visual.movement = movement;
+            jp.visual.loadMap();
+
             this.bind();
+//            console.log('test');
+
         },
 
         bind: function () {

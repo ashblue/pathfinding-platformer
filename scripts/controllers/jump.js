@@ -6,10 +6,13 @@ var jp = jp || {};
 $(document).ready(function () {
     jp.jump = {
         debug: false,
-        jumpFactor: 0.4, // @TODO Jump factor should be set subjective to manhattan distance distance
+        jumpFactor: 0.4,
+
+        init: function (playerSize) {
+            this.playerSize = playerSize;
+        },
 
         /**
-         * @TODO Currently doesn't take into account jump clearance when searching tiles, may or may not be important
          * @TODO Current size could be too wide, see how well this does first before changing
          * @param oX
          * @param oY
@@ -17,7 +20,7 @@ $(document).ready(function () {
          * @param tY
          * @returns {boolean}
          */
-        isJumpPossible: function (oX, oY, tX, tY) {
+        isJumpPossible: function (oX, oY, tX, tY, collisionMap, size) {
             var jumpPath = this.getJumpPath(oX, oY, tX, tY), offset, padding;
             for (var i = 0, len = jumpPath.length; i < len; i++) {
                 // Pad all values
@@ -25,18 +28,19 @@ $(document).ready(function () {
 
                 // Loop around the parabola point to gurantee properly padded space
                 if (jumpPath[i].x !== oX && jumpPath[i].x !== tX) {
-                    offset = -jp.pathFinder.playerSize;
+                    offset = -size;
                 } else {
                     offset = 0;
                 }
 
-                for (padding = jp.pathFinder.playerSize; offset <= padding; offset++) {
-                    if (jp.map.blocked(jumpPath[i].x, jumpPath[i].y - offset)) {
+                for (padding = size; offset <= padding; offset++) {
+                    if (collisionMap.blocked(jumpPath[i].x, jumpPath[i].y - offset)) {
                         return false;
                     }
 
+                    // @TODO Draw a line between both points for more accurate debug results
                     if (this.debug) {
-                        jp.draw.setJump(jumpPath[i].x, jumpPath[i].y - offset);
+                        jp.debug.setPoint(jumpPath[i].x, jumpPath[i].y - offset);
                     }
                 }
             }

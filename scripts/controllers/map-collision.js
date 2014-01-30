@@ -1,28 +1,45 @@
 var jp = jp || {};
 
 $(document).ready(function () {
-    var _private = {
-        /**
-         * @deprecated Moved into map object
-         */
-        outOfBounds: function (x, y) {
-            return x < 0 || x >= jp.map.dataCollision[0].length ||
-                y < 0 || y >= jp.map.dataCollision.length;
-        }
-    };
-
-    jp.map = {
+    window.MapCollision = Class.extend({
         dataCollision: null, // Current map with collision tiles (0 or 1)
         dataClearance: null, // Post processed dataCollision map with clearance
         dataMovePaths: null,
+        debug: false,
+
+        // Maximum clearance support to speed up checks
+        maxClearance: 4,
+
+        // Maximum jump height we will support to speed up linking
+        maxJump: 5,
+
+        init: function (map) {
+            this.setData(map);
+        },
 
         setData: function (map) {
-            jp.draw.clearLines();
             this.dataCollision = map;
-            var width = this.getWidthInTiles(), height = this.getHeightInTiles();
-            jp.clearance.setMap(width, height);
-            jp.movement.setMap(width, height, parseInt($('#input-move-clearance').val(), 10), parseInt($('#input-max-jump').val(), 10));
+            if (this.debug === true) jp.debug.updateMapCollision();
+            return this;
+        },
 
+        /**
+         * @TODO Clean out of memory on kill
+         * @param mapClearance
+         * @returns {MapCollision}
+         */
+        setClearance: function (mapClearance) {
+            this.clearance = mapClearance;
+            return this;
+        },
+
+        /**
+         * @TODO Clean out of memory on kill
+         * @param mapMovement
+         * @returns {MapCollision}
+         */
+        setMovement: function (mapMovement) {
+            this.movement = mapMovement;
             return this;
         },
 
@@ -35,7 +52,7 @@ $(document).ready(function () {
         },
 
         blocked: function (x, y) {
-            if (_private.outOfBounds(x, y)) {
+            if (this.outOfBounds(x, y)) {
                 return true;
             }
 
@@ -72,8 +89,8 @@ $(document).ready(function () {
                 left = this.blocked(x - 1, y);
 
             // Check right, left, bottom, top
-            if (!right) sides.push(new jp.Tile(x + 1, y));
-            if (!left) sides.push(new jp.Tile(x - 1, y));
+            if (!right) sides.push(new MapTile(x + 1, y));
+            if (!left) sides.push(new MapTile(x - 1, y));
 
             return sides;
         },
@@ -91,28 +108,26 @@ $(document).ready(function () {
                 top = this.blocked(x, y - 1);
 
             // Check right, left, bottom, top
-            if (!right) neighbors.push(new jp.Tile(x + 1, y));
-            if (!left) neighbors.push(new jp.Tile(x - 1, y));
-            if (!bottom) neighbors.push(new jp.Tile(x, y + 1));
-            if (!top) neighbors.push(new jp.Tile(x, y - 1));
+            if (!right) neighbors.push(new MapTile(x + 1, y));
+            if (!left) neighbors.push(new MapTile(x - 1, y));
+            if (!bottom) neighbors.push(new MapTile(x, y + 1));
+            if (!top) neighbors.push(new MapTile(x, y - 1));
 
             // Check top left, bottom left, top right, bottom right
             // Side checks enforce that corners should not be clipped / ignored
             // @NOTE Disabled as we don't want diagonals
             if (corners) {
-                if (!top && !left && !this.blocked(x - 1, y - 1)) neighbors.push(new jp.Tile(x - 1, y - 1));
-                if (!bottom && !left && !this.blocked(x - 1, y + 1)) neighbors.push(new jp.Tile(x - 1, y + 1));
-                if (!top && !right && !this.blocked(x + 1, y - 1)) neighbors.push(new jp.Tile(x + 1, y - 1));
-                if (!bottom && !right && !this.blocked(x + 1, y + 1)) neighbors.push(new jp.Tile(x + 1, y + 1));
+                if (!top && !left && !this.blocked(x - 1, y - 1)) neighbors.push(new MapTile(x - 1, y - 1));
+                if (!bottom && !left && !this.blocked(x - 1, y + 1)) neighbors.push(new MapTile(x - 1, y + 1));
+                if (!top && !right && !this.blocked(x + 1, y - 1)) neighbors.push(new MapTile(x + 1, y - 1));
+                if (!bottom && !right && !this.blocked(x + 1, y + 1)) neighbors.push(new MapTile(x + 1, y + 1));
             }
 
             return neighbors;
         },
 
-
-        // Only works when moving to adjacent levels
         getCost: function (xC, yC, xT, yT) {
             return this.dataCollision[yT][xT];
         }
-    };
+    });
 });

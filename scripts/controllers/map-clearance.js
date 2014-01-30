@@ -1,20 +1,29 @@
-var jp = jp || {};
-
 $(document).ready(function () {
-    var _private = {
+    'use strict';
+
+    window.MapClearance = Class.extend({
+        map: null, // An array of all existing clearance values
+        debug: false, // Output debug display of clearance values
+        collision: null, // Collision map reference
+
+        init: function (width, height, collision) {
+            return this.setMapCollision(collision)
+                .setMap(width, height);
+        },
+
+        setMapCollision: function (collision) {
+            this.collision = collision;
+            return this;
+        },
+
         recursiveClearance: function (xStart, yStart, distance) {
-            if (jp.map.isEdgeOpen(xStart, yStart, distance)) {
-                return _private.recursiveClearance(xStart, yStart, distance + 1);
+            if (this.collision.isEdgeOpen(xStart, yStart, distance)) {
+                return this.recursiveClearance(xStart, yStart, distance + 1);
             }
 
             // New distance failed, return the previous value
             return distance - 1;
-        }
-    };
-
-    jp.clearance = {
-        map: null, // An array of all existing clearance values
-        debug: false, // Output debug display of clearance values
+        },
 
         /**
          * Sets clearance values, reliant on the Map API to have collision data set
@@ -22,7 +31,8 @@ $(document).ready(function () {
          * @param height
          */
         setMap: function (width, height) {
-            var x, y, start = Date.now();
+            if (this.debug === true) var start = Date.now();
+            var x, y;
 
             this.map = [];
 
@@ -31,11 +41,14 @@ $(document).ready(function () {
                 for (x = 0; x < width; x++) {
                     // Recursively check clearance until false returns
                     // set clearance equal to number of successful recursive checks
-                    this.map[y].push(_private.recursiveClearance(x, y, 1));
+                    this.map[y].push(this.recursiveClearance(x, y, 1));
                 }
             }
 
-            if (this.debug) console.log('clearance compute time', Date.now() - start, 'ms');
+            if (this.debug === true) {
+                console.log('clearance compute time', Date.now() - start, 'ms');
+                jp.debug.updateMapClearance();
+            }
 
             return this;
         },
@@ -56,7 +69,7 @@ $(document).ready(function () {
                 if (clearance >= maxHeight) return clearance;
 
                 // If the value is going down return the previous value
-                if (jp.map.blocked(x, yC) || clearancePrev >= clearance) return clearancePrev;
+                if (this.collision.blocked(x, yC) || clearancePrev >= clearance) return clearancePrev;
 
                 clearancePrev = clearance;
             }
@@ -72,5 +85,5 @@ $(document).ready(function () {
         getTile: function (x, y) {
             return this.map[y][x];
         }
-    };
+    });
 });

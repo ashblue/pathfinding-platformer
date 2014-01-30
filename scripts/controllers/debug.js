@@ -9,9 +9,38 @@ $(document).ready(function () {
 //
 //    };
 
-    jp.draw = {
+    jp.debug = {
         squareSize: 42,
         squareMid: 21,
+
+        /**
+         * Hook for debugging collision maps
+         */
+        updateMapCollision: function () {
+            // Your custom logic here. Output a mini-map, overlay, whatever it is you want
+
+            return this;
+        },
+
+        /**
+         * Hook for debugging clearance maps
+         * @returns {jp.debug}
+         */
+        updateMapClearance: function () {
+            // Custome logic here
+
+            return this;
+        },
+
+        /**
+         * Hook for debugging movement maps
+         * @returns {jp.debug}
+         */
+        updateMapMovement: function () {
+            // Custom logic here
+
+            return this;
+        },
 
         /**
          * Draw a line between two points on the graph
@@ -21,7 +50,7 @@ $(document).ready(function () {
          * @param yT
          * @param color
          * @src http://monkeyandcrow.com/blog/drawing_lines_with_css3/
-         * @returns {jp.draw}
+         * @returns {jp.debug}
          */
         setLine: function (xO, yO, xT, yT, color) {
             var x1 = (xO * this.squareSize) + this.squareMid,
@@ -48,14 +77,28 @@ $(document).ready(function () {
             return this;
         },
 
+        /**
+         *
+         * @returns {jp.debug}
+         */
         clearLines: function () {
             $('#map').find('.line').detach();
             return this;
         },
 
-        setJump: function (x, y) {
+        /**
+         * Custom logic to set a voxel point
+         * @param x
+         * @param y
+         * @returns {jp.debug}
+         */
+        setPoint: function (x, y) {
             jp.visual.setTileStatus({ x: x, y: y }, 'jump');
 
+            return this;
+        },
+
+        clearPoints: function () {
             return this;
         }
     };

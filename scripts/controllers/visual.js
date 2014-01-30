@@ -55,7 +55,7 @@ $(document).ready(function () {
             jp.visual.showClearance()
                 .showPlatformer();
 
-            jp.map.setData(jp.visual.getCollisionMap());
+            jp.visual.updateMaps();
         },
 
         activeStart: function () {
@@ -83,30 +83,30 @@ $(document).ready(function () {
         },
 
         toggleClearance: function () {
-            jp.clearance.debug = !jp.clearance.debug;
+            jp.visual.clearance.debug = !jp.visual.clearance.debug;
             jp.visual.showClearance();
         },
 
         togglePlatformer: function () {
-            jp.draw.clearLines();
-            jp.movement.debug = !jp.movement.debug;
+            jp.debug.clearLines();
+            jp.visual.movement.debug = !jp.visual.movement.debug;
             jp.visual.showPlatformer();
+            jp.visual.updateMaps();
         },
 
         toggleJump: function () {
             jp.visual.clearPath(TILES.jump, true);
             jp.jump.debug = !jp.jump.debug;
-            jp.map.setData(jp.visual.getCollisionMap());
+            jp.visual.showPlatformer();
+            jp.visual.updateMaps();
         }
     };
 
     jp.visual = {
-        init: function () {
-            this.createMap('map', 18, 12)
-                .bind()
-                .loadMap();
-        },
-
+        collision: null,
+        clearance: null,
+        movement: null,
+        
         /**
          * Gets the current map and saves it to local storage as a serialized array
          */
@@ -114,6 +114,17 @@ $(document).ready(function () {
             localStorage.setItem('begin', JSON.stringify(this.getBegin()));
             localStorage.setItem('end', JSON.stringify(this.getEnd()));
             localStorage.setItem('mapCollision', JSON.stringify(this.getCollisionMap()));
+        },
+
+        updateMaps: function () {
+            jp.debug.clearLines().clearPoints();
+            this.collision.setData(this.getCollisionMap());
+            var width = jp.map.getWidthInTiles(), height = jp.map.getHeightInTiles();
+            this.clearance.setMap(width, height);
+            this.movement.setMap(width, height, parseInt($('#input-move-clearance').val(), 10), parseInt($('#input-max-jump').val(), 10));
+
+            this.showClearance();
+            this.showPlatformer();
         },
 
         /**
@@ -135,7 +146,7 @@ $(document).ready(function () {
                     }
                 }
 
-                jp.map.setData(this.getCollisionMap());
+                this.updateMaps();
 
                 // Set special tiles
                 this.setBegin(begin.x, begin.y)
@@ -164,7 +175,7 @@ $(document).ready(function () {
                     .setStatus({ x: 15, y: 10 }, 'closed')
                     .setStatus({ x: 16, y: 10 }, 'closed');
 
-                jp.map.setData(this.getCollisionMap());
+                this.updateMaps();
             }
 
             return this;
@@ -218,14 +229,14 @@ $(document).ready(function () {
         },
 
         showClearance: function () {
-            if (jp.clearance.debug) {
-                var width = jp.map.getWidthInTiles();
-                var height = jp.map.getHeightInTiles();
+            if (this.clearance.debug) {
+                var width = this.collision.getWidthInTiles();
+                var height = this.collision.getHeightInTiles();
                 var x, y;
 
                 for (y = 0; y < height; y++) {
                     for (x = 0; x < width; x++) {
-                        jp.visual.setTileValue({x: x, y: y}, 'c', jp.clearance.getTile(x, y));
+                        jp.visual.setTileValue({x: x, y: y}, 'c', this.clearance.getTile(x, y));
                     }
                 }
             } else {
@@ -236,14 +247,14 @@ $(document).ready(function () {
         },
 
         showPlatformer: function () {
-            if (jp.movement.debug) {
-                var width = jp.map.getWidthInTiles();
-                var height = jp.map.getHeightInTiles();
+            if (this.movement.debug) {
+                var width = this.collision.getWidthInTiles();
+                var height = this.collision.getHeightInTiles();
                 var x, y, output, tile;
 
                 for (y = 0; y < height; y++) {
                     for (x = 0; x < width; x++) {
-                        tile = jp.movement.getTile(x, y);
+                        tile = this.movement.getTile(x, y);
                         output = tile.type;
                         if (tile.clearance) output += '-' + tile.clearance;
                         jp.visual.setTileValue({x: x, y: y}, 'm', output);
@@ -362,7 +373,7 @@ $(document).ready(function () {
                 $tile.append('<span class="stat h">' + tile.h +'</span>');
             }
 
-            $tile.append('<span class="stat c">' + jp.clearance.getTile(tile.x, tile.y) + '</span>');
+            $tile.append('<span class="stat c">' + this.clearance.getTile(tile.x, tile.y) + '</span>');
 
             return this;
         },
@@ -381,10 +392,10 @@ $(document).ready(function () {
             $MAP_TILES.find('.f, .g, .h').detach();
 
             // Verify there is proper clearance around the player before placing
-            var playerSize = jp.visual.getPlayerSize(),
+            var playerSize = this.getPlayerSize(),
                 xPos = parseInt($el.attr('data-x'), 10),
                 yPos = parseInt($el.attr('data-y'));
-            if (jp.visual.getPlayerSize() > jp.clearance.getTile(xPos, yPos))
+            if (this.getPlayerSize() > this.clearance.getTile(xPos, yPos))
                 return;
 
             $MAP.find(TILES.begin).attr('data-status', 'open');
