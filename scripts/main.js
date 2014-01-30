@@ -7,13 +7,15 @@ $(document).ready(function () {
 
     var _event = {
         findGravityPath: function () {
+            var begin = jp.visual.getBegin();
             main.pathfinder.setGravity(true);
-            main.findPath();
+            main.findPath(begin.x + main.pathfinder.playerSize - 1, begin.y + main.pathfinder.playerSize - 1);
         },
 
         findFloatingPath: function () {
+            var begin = jp.visual.getBegin();
             main.pathfinder.setGravity(false);
-            main.findPath();
+            main.findPath(begin.x, begin.y);
         }
     };
 
@@ -48,10 +50,9 @@ $(document).ready(function () {
             $BTN_PATH_FLOAT.click(_event.findFloatingPath);
         },
 
-        findPath: function () {
+        findPath: function (startX, startY) {
             var timeEnd,
                 timeStart,
-                begin = jp.visual.getBegin(),
                 end = jp.visual.getEnd(),
                 maxSteps = parseInt($('#input-max-steps').val(), 10);
 
@@ -60,7 +61,7 @@ $(document).ready(function () {
             timeStart = Date.now();
 
             // @TODO If the player is up in the air we are in the middle of a jump, do not find a path during a jump (error prone)
-            var path = main.pathfinder.findPath(begin.x + main.pathfinder.playerSize - 1, begin.y + main.pathfinder.playerSize - 1, end.x, end.y, maxSteps);
+            var path = main.pathfinder.findPath(startX, startY, end.x, end.y, maxSteps);
 
             timeEnd = Date.now();
             main.pathfinder.setVisual();

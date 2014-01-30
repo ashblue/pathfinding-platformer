@@ -132,7 +132,7 @@ $(document).ready(function () {
 
         // @TODO Not the best place for this but needed to mimic MapMovement class
         getClearance: function (x, y) {
-            this.clearance.getTile(x, y);
+            return this.clearance.getTile(x, y);
         }
     });
 });

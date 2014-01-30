@@ -124,7 +124,7 @@ $(document).ready(function () {
             // You must add the starting step
             this.reset()
                 .setMaxSteps(maxSteps)
-                .addOpen(new jp.Step(xC, yC, xT, yT, this.step, false, 1));
+                .addOpen(new jp.Step(xC, yC, xT, yT, this.step, false));
 
             while (this.open.length !== 0) {
                 this.calls += 1;
@@ -163,7 +163,10 @@ $(document).ready(function () {
                     if (!neighborRecord || stepCost < neighborRecord.g) {
                         if (!neighborRecord) {
                             // Reject the tile immediately if the player cannot fit into it
-                            // @TODO Larger movement sizes don't work because the initial player tile square is the top left, it must be the bottom left instead
+                            // @TODO Sizes larger than one for gravity based movement are broken because it prevents you from walking right to find connections
+                            // one extra space causes connections to become unacessible
+                            //  I recommend disabling size based gravity checks until this issue is resolved
+                            console.log(this.playerSize, this.map.getClearance(neighbors[i].x, neighbors[i].y));
                             if (this.playerSize > this.map.getClearance(neighbors[i].x, neighbors[i].y)) continue;
                             this.addOpen(new jp.Step(neighbors[i].x, neighbors[i].y, xT, yT, stepCost, current));
                         } else {
