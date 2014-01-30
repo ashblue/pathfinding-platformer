@@ -1,34 +1,25 @@
 var jp = jp || {};
 
 $(document).ready(function () {
-    var $BTN_PATH = $('#calculate'),
+    var $BTN_PATH = $('#calculate')
+        $BTN_PATH_FLOAT = $('#path-float'),
         $BTN_ERASE = $('#erase');
 
     var _event = {
-        findPath: function () {
-            var timeEnd,
-                timeStart,
-                begin = jp.visual.getBegin(),
-                end = jp.visual.getEnd(),
-                maxSteps = parseInt($('#input-max-steps').val(), 10);
+        findGravityPath: function () {
+            main.pathfinder.setGravity(true);
+            main.findPath();
+        },
 
-            jp.pathFinder.playerSize = jp.visual.getPlayerSize();
-            jp.map.setData(jp.visual.getCollisionMap());
-            timeStart = Date.now();
-
-            // @TODO If the player is up in the air we are in the middle of a jump, do not find a path during a jump (error prone)
-            var path = jp.pathFinder.findPath(begin.x + jp.pathFinder.playerSize - 1, begin.y + jp.pathFinder.playerSize - 1, end.x, end.y, maxSteps);
-
-            timeEnd = Date.now();
-            jp.pathFinder.setVisual();
-            jp.visual.setTileGroup(path, 'path');
-
-            $('#time').html((timeEnd - timeStart) / 1000);
-            $('#calls').html(jp.pathFinder.calls);
+        findFloatingPath: function () {
+            main.pathfinder.setGravity(false);
+            main.findPath();
         }
     };
 
     var main = {
+        pathfinder: null, // Testable pathfinder
+
         init: function () {
             jp.visual.createMap('map', 18, 12);
             jp.visual.bind();
@@ -46,14 +37,37 @@ $(document).ready(function () {
             jp.visual.movement = movement;
             jp.visual.loadMap();
 
-            this.bind();
-//            console.log('test');
+            this.pathfinder = new Pathfinder(jp.map, movement, true);
 
+            this.bind();
         },
 
         bind: function () {
-            $BTN_PATH.click(_event.findPath);
+            $BTN_PATH.click(_event.findGravityPath);
             $BTN_ERASE.click(jp.visual.erase);
+            $BTN_PATH_FLOAT.click(_event.findFloatingPath);
+        },
+
+        findPath: function () {
+            var timeEnd,
+                timeStart,
+                begin = jp.visual.getBegin(),
+                end = jp.visual.getEnd(),
+                maxSteps = parseInt($('#input-max-steps').val(), 10);
+
+            main.pathfinder.playerSize = jp.visual.getPlayerSize();
+            jp.map.setData(jp.visual.getCollisionMap());
+            timeStart = Date.now();
+
+            // @TODO If the player is up in the air we are in the middle of a jump, do not find a path during a jump (error prone)
+            var path = main.pathfinder.findPath(begin.x + main.pathfinder.playerSize - 1, begin.y + main.pathfinder.playerSize - 1, end.x, end.y, maxSteps);
+
+            timeEnd = Date.now();
+            main.pathfinder.setVisual();
+            jp.visual.setTileGroup(path, 'path');
+
+            $('#time').html((timeEnd - timeStart) / 1000);
+            $('#calls').html(main.pathfinder.calls);
         }
     };
 

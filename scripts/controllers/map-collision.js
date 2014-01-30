@@ -128,6 +128,11 @@ $(document).ready(function () {
 
         getCost: function (xC, yC, xT, yT) {
             return this.dataCollision[yT][xT];
+        },
+
+        // @TODO Not the best place for this but needed to mimic MapMovement class
+        getClearance: function (x, y) {
+            this.clearance.getTile(x, y);
         }
     });
 });

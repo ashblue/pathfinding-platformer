@@ -3,7 +3,15 @@ var jp = jp || {};
 $(document).ready(function () {
     // Pathfinder API - Returns a path to the target
     // Good place to add details such as flying, swimming, ect.
-    jp.pathFinder = {
+    // @TODO Currently this only supports pathfinding from movement maps, tweak slightly so it can support
+    // a collision map too
+    window.Pathfinder = Class.extend({
+        gravity: true, // Should we consider gravity?
+
+        map: null,
+        collision: null,
+        movement: null,
+
         // Goal variables help to determine if an object larger than one voxel has hit its goal
         xGoal: null,
         yGoal: null,
@@ -25,6 +33,21 @@ $(document).ready(function () {
         maxSearchDistance: 10,
 
         calls: null,
+
+        init: function (collision, movement, status) {
+            this.collision = collision;
+            this.movement = movement;
+            this.setGravity(status);
+        },
+
+        setGravity: function (status) {
+            this.gravity = status;
+            if (this.gravity) {
+                this.map = this.movement;
+            } else {
+                this.map = this.collision;
+            }
+        },
 
         addOpen: function (step) {
             this.open.push(step);
@@ -124,10 +147,10 @@ $(document).ready(function () {
                     .addClosed(current);
 
                 // Get neighbors from the map and check them
-                neighbors = jp.movement.getNeighbors(current.x, current.y);
+                neighbors = this.map.getNeighbors(current.x, current.y);
                 for (i = 0; i < neighbors.length; i++) {
                     // Get current step and distance from current to neighbor
-                    stepCost = current.g + jp.movement.getCost(current.x, current.y, neighbors[i].x, neighbors[i].y);
+                    stepCost = current.g + this.map.getCost(current.x, current.y, neighbors[i].x, neighbors[i].y);
 
                     // Check for the neighbor in the closed set
                     // then see if its cost is >= the stepCost, if so skip current neighbor
@@ -141,7 +164,7 @@ $(document).ready(function () {
                         if (!neighborRecord) {
                             // Reject the tile immediately if the player cannot fit into it
                             // @TODO Larger movement sizes don't work because the initial player tile square is the top left, it must be the bottom left instead
-                            if (this.playerSize > jp.movement.getClearance(neighbors[i].x, neighbors[i].y)) continue;
+                            if (this.playerSize > this.map.getClearance(neighbors[i].x, neighbors[i].y)) continue;
                             this.addOpen(new jp.Step(neighbors[i].x, neighbors[i].y, xT, yT, stepCost, current));
                         } else {
                             neighborRecord.parent = current;
@@ -213,5 +236,5 @@ $(document).ready(function () {
             this.calls = 0;
             return this;
         }
-    };
+    });
 });
